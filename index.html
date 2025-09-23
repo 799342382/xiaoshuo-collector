@@ -1,0 +1,137 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>小说收纳神器 · 整合章节 · 待接AI标题</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+    @media screen and (max-width: 600px) {
+        body { padding: 10px; }
+        textarea { height: 150px; font-size: 14px; }
+        button { font-size: 14px; padding: 8px 10px; }
+        .chapter-title { font-size: 15px; }
+        .delete-btn { padding: 4px 8px; font-size: 14px; }
+        .chapter-content { font-size: 14px; }
+    }
+        body { font-family: "Microsoft YaHei", sans-serif; background: #f4f4f4; padding: 20px; }
+        h1 { text-align: center; color: #333; }
+        textarea { width: 100%; height: 200px; font-size: 16px; padding: 10px; margin-top: 10px; box-sizing: border-box; }
+        button { padding: 10px 15px; font-size: 16px; margin-top: 10px; margin-right: 5px; }
+        .chapter-box {
+            background: #fff; margin-top: 10px; border-radius: 5px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1); position: relative;
+            padding: 0; overflow: hidden;
+        }
+        .chapter-header {
+            display: flex; justify-content: space-between;
+            align-items: center; padding: 10px 15px;
+            background: #e9f3ff; cursor: pointer; border-bottom: 1px solid #ddd;
+        }
+        .chapter-title {
+            font-weight: bold; font-size: 16px; color: #007bff;
+        }
+        .delete-btn {
+            background-color: #ff4d4f; color: white; border: none;
+            padding: 5px 12px; border-radius: 3px; cursor: pointer;
+        }
+        .chapter-content {
+            display: none; padding: 10px 15px; white-space: pre-wrap; color: #333;
+        }
+    </style>
+</head>
+<body>
+    <h1>📖 小说收纳神器 · 章节整合版</h1>
+    <p>每次复制一章小说正文，系统自动识别小说情节、折叠展示、可导出TXT。标题未来支持AI智能生成。</p>
+    <textarea id="chapterInput" placeholder="粘贴小说正文内容..."></textarea>
+    <button onclick="addChapter()">📥 添加为新章节</button>
+    <button onclick="downloadChapters()">📦 下载全集 TXT</button>
+    <button onclick="clearAll()">🗑️ 一键清空所有章节</button>
+
+    <h3>✅ 当前已添加章节：</h3>
+    <div id="chapterList">（尚未添加章节）</div>
+
+    <script>
+        let chapters = [];
+
+        function isNovelLine(line) {
+            if (!line || line.length < 10) return false;
+            const blockWords = [
+                "声明", "转载", "请勿", "侵权", "访问", "网址", "小说网", "阅读量", "作者", "简介",
+                "章节列表", "下载", "手机阅读", "收藏本站", "最新章节", "请记住", "地址", "更新", 
+                "法律", "法规", "本站", "平台", "书友", "阅读器", "微信", "扫描", "推广", "条款"
+            ];
+            const hasBlock = blockWords.some(w => line.includes(w));
+            const isEnglishOrURL = /[a-zA-Z]{3,}|\d+\.\d+|https?:\/\//.test(line);
+            const isLikeStory = /[“"].{3,}[”"]/.test(line) || /他|她|你|我|说|问|想|看|走|跑/.test(line);
+            return !hasBlock && !isEnglishOrURL && isLikeStory;
+        }
+
+        function generatePlaceholderTitle(content, index) {
+            const firstLine = content.split('\n').find(l => l.length >= 10) || "";
+            return `第${index + 1}章 · ${firstLine.slice(0, 10)}...`;
+        }
+
+        function addChapter() {
+            const raw = document.getElementById('chapterInput').value.trim();
+            if (!raw) return alert("请粘贴小说正文！");
+            const lines = raw.split('\n').map(x => x.trim()).filter(isNovelLine);
+            const content = lines.join('\n');
+            if (content.length < 30) {
+                alert("系统未能识别有效小说情节，请检查内容或换一章。");
+                return;
+            }
+            chapters.push({ title: '', content });
+            document.getElementById('chapterInput').value = "";
+            renderChapterList();
+        }
+
+        function renderChapterList() {
+            const list = document.getElementById('chapterList');
+            if (chapters.length === 0) {
+                list.innerHTML = "（尚未添加章节）";
+                return;
+            }
+            list.innerHTML = chapters.map((ch, idx) => {
+                const title = generatePlaceholderTitle(ch.content, idx);
+                chapters[idx].title = title;
+                return `
+                <div class="chapter-box">
+                    <div class="chapter-header" onclick="toggleChapter(${idx})">
+                        <div class="chapter-title">${title}</div>
+                        <button class="delete-btn" onclick="event.stopPropagation(); deleteChapter(${idx})">删除</button>
+                    </div>
+                    <div class="chapter-content" id="chapter-${idx}">${ch.content}</div>
+                </div>`;
+            }).join("");
+        }
+
+        function toggleChapter(index) {
+            const el = document.getElementById('chapter-' + index);
+            el.style.display = el.style.display === 'block' ? 'none' : 'block';
+        }
+
+        function deleteChapter(index) {
+            if (!confirm("确定要删除该章节？")) return;
+            chapters.splice(index, 1);
+            renderChapterList();
+        }
+
+        function clearAll() {
+            if (!confirm("你确定要清空所有章节吗？")) return;
+            chapters = [];
+            renderChapterList();
+        }
+
+        function downloadChapters() {
+            if (chapters.length === 0) return alert("你还没有添加任何章节！");
+            const content = chapters.map((ch, idx) => `${ch.title}\n${ch.content}`).join('\n\n---\n\n');
+            const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+            const a = document.createElement("a");
+            a.href = URL.createObjectURL(blob);
+            a.download = "小说收纳合集.txt";
+            a.click();
+        }
+    </script>
+</body>
+</html>
