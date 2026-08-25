@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>小说智能体 · 续写 / 同风格 / 清洗整理</title>
+<title>小说智能体 · 续写 / 同风格 / 清洗拼书 / 朗读</title>
 <style>
   :root{
     --bg:#f5f3ef; --panel:#ffffff; --ink:#2b2b2b; --sub:#7a7468;
@@ -149,6 +149,39 @@
 
   footer{text-align:center;color:var(--sub);font-size:12px;margin-top:30px}
   .badge{display:inline-block;background:#f0ece4;border-radius:6px;padding:2px 8px;font-size:12px;color:var(--sub)}
+
+  /* ===== 手机端适配（朗读为高频场景，重点优化触屏体验）===== */
+  @media(max-width:768px){
+    body{padding:14px 10px 48px}
+    header h1{font-size:22px}
+    header p{font-size:13px;line-height:1.5}
+    .settings{padding:14px}
+    .card{padding:14px;margin-bottom:14px}
+    .card h3{font-size:14px}
+    .grid{grid-template-columns:1fr}
+    /* 标签页：两列网格，方便手机点击 */
+    .tabs{gap:6px;margin-bottom:14px}
+    .tab{flex:1 1 46%;min-width:0;padding:12px 4px;font-size:13px}
+    /* 朗读控制：单列堆叠，每个控件占满宽度 */
+    .read-controls{flex-direction:column;align-items:stretch;gap:14px}
+    .read-controls .field{flex:1 1 auto;width:100%;min-width:0}
+    .read-controls .field input[type=range]{margin-top:4px}
+    /* 播放控制：主按钮三等分、点击区域放大；从选中处读整行 */
+    #readPlay,#readPause,#readStop{flex:1 1 30%;min-width:86px;padding:14px 6px;font-size:14px}
+    #readFromSel{flex:1 1 100%;padding:12px;font-size:14px}
+    /* 上传按钮更醒目 */
+    .read-actions{margin-top:10px}
+    .upload-btn{padding:11px 16px;font-size:14px}
+    /* 朗读预览字号与高度适配手机屏幕 */
+    .read-view{font-size:15px;line-height:1.85;max-height:46vh;padding:14px 16px}
+    .read-hint{font-size:12px}
+    /* 输入区按钮在手机上更好点 */
+    .input-actions{right:8px;bottom:8px;gap:6px}
+    .input-actions .btn.sm{padding:9px 13px;font-size:13px}
+    /* 通用按钮加大触摸区，便于手指点按 */
+    .btn{padding:13px 18px}
+    .api-on-left .ak-sub{font-size:10.5px}
+  }
 </style>
 </head>
 <body>
@@ -943,12 +976,30 @@ function renderReadView(highlightIdx){
 }
 function populateVoices(){
   const sel = $('readVoice');
+  if(!window.speechSynthesis){ return false; }
   const voices = window.speechSynthesis.getVoices()||[];
-  if(!voices.length){ sel.innerHTML='<option value="">（浏览器暂无可语音）</option>'; return; }
+  if(!voices.length){ sel.innerHTML='<option value="">（加载中…）</option>'; return false; }
   const zh = voices.filter(v=>/zh|cmn|Chinese|中文|普通话/i.test(v.lang+' '+v.name));
   const list = zh.length ? zh : voices;
+  const saved = sel.value;
   sel.innerHTML = list.map((v,i)=>'<option value="'+i+'">'+esc(v.name)+'（'+v.lang+'）</option>').join('');
   sel._voices = list;
+  // 尽量恢复之前的选项；否则默认选第一条
+  if(saved && list[Number(saved)]) sel.value = saved;
+  else if(list[0]) sel.value = '0';
+  return true;
+}
+function ensureVoices(){
+  if(populateVoices()) return true;
+  // 部分手机浏览器（尤其是国产浏览器/iOS）需要一次 cancel 或空 speak 才暴露 voices
+  if(window.speechSynthesis){
+    try{ window.speechSynthesis.cancel(); }catch(e){}
+    try{
+      const u = new SpeechSynthesisUtterance(''); u.volume=0; window.speechSynthesis.speak(u);
+      window.speechSynthesis.cancel();
+    }catch(e){}
+  }
+  return populateVoices();
 }
 function speakSentence(){
   if(readState.idx >= readState.sents.length){ stopRead(); $('readStatus').textContent='✅ 朗读完成'; return; }
@@ -989,6 +1040,11 @@ $('readPlay').onclick=()=>{
   if(readState.reading && readState.paused){ window.speechSynthesis.resume(); readState.paused=false; $('readPause').textContent='⏸ 暂停'; return; }
   const text = $('readIn').value.trim();
   if(!text){ $('readStatus').textContent='⚠️ 请先粘贴文字或上传文档'; return; }
+  // 手机上首次播放常需主动唤醒语音列表
+  if(!ensureVoices() && !$('readVoice')._voices?.length){
+    $('readStatus').textContent='⚠️ 未获取到本机语音包，请检查系统语音设置或换用 Chrome / Edge';
+    return;
+  }
   stopRead();
   startReadAt(0);
   $('readStatus').textContent='🎧 朗读中…';
@@ -1110,8 +1166,24 @@ $('cleanRead').onclick=()=>loadToRead($('cleanOut').textContent);
 /* 初始化语音 */
 if('speechSynthesis' in window){
   populateVoices();
+  // 系统语音列表就绪时自动刷新
   window.speechSynthesis.onvoiceschanged = populateVoices;
+  // 兜底：部分手机浏览器不触发 voiceschanged，轮询加载
+  let voiceTries=0;
+  const voicePoll = setInterval(()=>{
+    if(populateVoices()){ clearInterval(voicePoll); return; }
+    if(++voiceTries>25){
+      clearInterval(voicePoll);
+      $('readVoice').innerHTML='<option value="">（未获取到语音，点击播放再试）</option>';
+    }
+  }, 400);
+  // 用户首次交互时再次强制加载（iOS / 部分国产浏览器需要手势才暴露语音）
+  ['touchstart','click'].forEach(evt=>{
+    const fn = ()=>{ if(!populateVoices()) ensureVoices(); };
+    document.addEventListener(evt, fn, {once:true});
+  });
 }else{
+  $('readVoice').innerHTML='<option value="">（浏览器不支持语音）</option>';
   $('readStatus').textContent='⚠️ 当前浏览器不支持语音朗读，请换 Chrome / Edge';
   $('readPlay').disabled=true;
 }
