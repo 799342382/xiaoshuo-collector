@@ -937,7 +937,7 @@ $('downloadBook').onclick=()=>{
   });
   downloadText(out, name+'.txt');
 };
-$('clearCh').onclick=()=>{ if(confirm('确定清空所有章节？')){ chapters=[]; renderChapters(); } };
+$('clearCh').onclick=()=>{ chapters=[]; renderChapters(); $('chSummary').textContent='已清空全部章节，可重新添加。'; };
 
 /* ============ 辅助函数 ============ */
 function copyText(t){
@@ -1031,7 +1031,7 @@ function startReadAt(idx){
   speakSentence();
 }
 function stopRead(){
-  window.speechSynthesis.cancel();
+  try{ window.speechSynthesis.cancel(); }catch(e){}
   readState.reading=false; readState.paused=false;
   $('readPause').textContent='⏸ 暂停';
 }
@@ -1147,7 +1147,12 @@ async function readPdf(file){
   return text;
 }
 /* 清空 */
-$('readClear').onclick=()=>{ stopRead(); $('readIn').value=''; renderReadView(-1); $('readStatus').textContent=''; };
+$('readClear').onclick=()=>{
+  $('readIn').value='';                 // 先清空输入框，确保一定有反应
+  try{ renderReadView(-1); }catch(e){}
+  try{ stopRead(); }catch(e){}          // 停止朗读；语音异常时忽略错误
+  $('readStatus').textContent='已清空';
+};
 /* 其他功能「朗读」按钮：把内容载入朗读面板 */
 function loadToRead(text){
   if(!text.trim()){ alert('当前没有可朗读的内容'); return; }
