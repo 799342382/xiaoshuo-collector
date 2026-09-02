@@ -147,6 +147,13 @@
   .rh-sent.hl{background:#fff2c4;border-radius:4px;box-shadow:0 0 0 2px #ffe39a}
   .rh-sent.done{color:#b9b1a6}
 
+  /* 朗读不可用时的醒目提示 */
+  .read-warn{display:none;margin:0 0 14px;padding:12px 14px;border-radius:12px;
+    background:#fff4e5;border:1px solid #ffd9a3;color:#8a4b00;font-size:13.5px;line-height:1.65}
+  .read-warn.show{display:block}
+  .read-warn b{color:#a84300}
+  .read-warn .rw-title{font-weight:700;display:block;margin-bottom:2px}
+
   /* 章节列表 */
   .book-title{margin-bottom:12px}
   .chapter{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:10px;background:#fcfbf9}
@@ -567,6 +574,7 @@
 
   <!-- ===== 功能四：朗读 ===== -->
   <section class="panel" id="panel-read">
+    <div id="readWarn" class="read-warn"></div>
     <div class="card">
       <h3>🎧 朗读（纯本地语音，不消耗 API 额度）</h3>
       <textarea id="readIn" placeholder="把要朗读的小说 / 文字粘贴到这里；或点右侧「📂 上传文档」导入 TXT / Word(.docx) / PDF…"></textarea>
@@ -2733,7 +2741,28 @@ function downloadText(t, name){
 }
 
 /* ============ 功能四：朗读（Web Speech API，纯本地，不耗 API）============ */
-const readState = { idx:0, reading:false, paused:false };
+const readState = { idx:0, reading:false, paused:false, started:false, errCount:0, watchdog:null };
+
+/* 朗读不可用时给出醒目提示，而不是静默失败 */
+function showReadWarn(html){
+  const w = $('readWarn');
+  if(!w) return;
+  w.innerHTML = html;
+  w.classList.add('show');
+}
+function clearReadWarn(){
+  const w = $('readWarn');
+  if(!w) return;
+  w.classList.remove('show');
+  w.innerHTML = '';
+}
+/* 探测本机/浏览器是否真能朗读：支持度 + 是否有中文语音包 */
+function detectTTS(){
+  const ok = 'speechSynthesis' in window && !!window.speechSynthesis;
+  const voices = ok ? (window.speechSynthesis.getVoices()||[]) : [];
+  const hasZh = voices.some(v => /zh|cmn|Chinese|中文|普通话|国语/i.test((v.lang||'')+' '+(v.name||'')));
+  return { ok, voices, hasZh };
+}
 
 function splitSentences(t){
   // 按中英文句末标点 + 换行切句，保留标点
@@ -2808,6 +2837,12 @@ function speakSentence(){
   u.rate = parseFloat($('readRate').value);
   u.volume = parseFloat($('readVol').value);
   u.pitch = parseFloat($('readPitch').value);
+  readState.started = false;
+  u.onstart = ()=>{
+    readState.started = true;
+    readState.errCount = 0;
+    if(readState.watchdog){ clearTimeout(readState.watchdog); readState.watchdog = null; }
+  };
   u.onend = ()=>{
     if(!readState.reading) return;
     readState.idx++;
@@ -2815,21 +2850,44 @@ function speakSentence(){
     $('readCount').textContent='第 '+readState.idx+' / '+readState.sents.length+' 句';
     speakSentence();
   };
-  u.onerror = ()=>{};
+  u.onerror = (e)=>{
+    readState.errCount = (readState.errCount||0) + 1;
+    if(readState.errCount >= 3){
+      stopRead();
+      const code = (e && e.error) ? ('（'+e.error+'）') : '';
+      showReadWarn('<span class="rw-title">⚠️ 朗读连续出错'+code+'，本机/浏览器可能无法发声</span>请用手机系统自带的 <b>Chrome / Edge / Safari</b> 打开本页，或在系统设置里开启「文字转语音(TTS)」并下载<b>中文语音包</b>后再试。');
+      $('readStatus').textContent='⚠️ 朗读出错';
+    }
+  };
   window.speechSynthesis.speak(u);
   renderReadView(readState.idx);
   $('readCount').textContent='第 '+(readState.idx+1)+' / '+readState.sents.length+' 句';
   readState.reading=true; readState.paused=false;
 }
 function startReadAt(idx){
+  if(!detectTTS().ok){
+    showReadWarn('<span class="rw-title">⚠️ 当前浏览器不支持语音朗读</span>常见于 <b>微信 / QQ 等 App 内置浏览器</b>。请改用手机系统自带的 <b>Chrome / Edge / Safari</b> 打开本页，再点「▶ 播放」即可朗读。');
+    $('readStatus').textContent='⚠️ 浏览器不支持语音';
+    return;
+  }
+  if(readState.watchdog){ clearTimeout(readState.watchdog); readState.watchdog = null; }
   window.speechSynthesis.cancel();
   readState.sents = splitSentences($('readIn').value);
   readState.idx = idx;
   if(!readState.sents.length){ $('readStatus').textContent='⚠️ 没有可朗读的内容'; return; }
+  // 静默失败看护：点了播放后本机一直不发声（常见于微信/QQ 内置浏览器或缺少语音包）
+  readState.watchdog = setTimeout(()=>{
+    if(readState.reading && !readState.started){
+      stopRead();
+      showReadWarn('<span class="rw-title">⚠️ 点击播放后本机一直没有开始朗读</span>说明当前环境（很可能是 <b>微信 / QQ 等 App 内置浏览器</b>，或系统未安装语音包）不支持语音朗读。请改用手机系统自带的 <b>Chrome / Edge / Safari</b> 打开本页，或在系统设置里开启「文字转语音(TTS)」并下载中文语音包后再试。');
+      $('readStatus').textContent='⚠️ 无法朗读';
+    }
+  }, 1600);
   speakSentence();
 }
 function stopRead(){
   try{ window.speechSynthesis.cancel(); }catch(e){}
+  if(readState.watchdog){ clearTimeout(readState.watchdog); readState.watchdog = null; }
   readState.reading=false; readState.paused=false;
   $('readPause').textContent='⏸ 暂停';
 }
@@ -2839,9 +2897,22 @@ $('readPlay').onclick=()=>{
   const text = $('readIn').value.trim();
   if(!text){ $('readStatus').textContent='⚠️ 请先粘贴文字或上传文档'; return; }
   // 手机上首次播放常需主动唤醒语音列表
-  if(!ensureVoices() && !$('readVoice')._voices?.length){
-    $('readStatus').textContent='⚠️ 未获取到本机语音包，请检查系统语音设置或换用 Chrome / Edge';
+  ensureVoices();
+  const t = detectTTS();
+  if(!t.ok){
+    showReadWarn('<span class="rw-title">⚠️ 当前浏览器不支持语音朗读</span>常见于 <b>微信 / QQ 等 App 内置浏览器</b>。请改用手机系统自带的 <b>Chrome / Edge / Safari</b> 打开本页，再点「▶ 播放」即可朗读。');
+    $('readStatus').textContent='⚠️ 浏览器不支持语音';
     return;
+  }
+  if(!t.voices.length){
+    showReadWarn('<span class="rw-title">⚠️ 未获取到本机语音包</span>请在系统设置里开启「<b>文字转语音(TTS)</b>」并确保已安装语音；或换用 Chrome / Edge / Safari 打开本页。');
+    $('readStatus').textContent='⚠️ 未获取到语音包';
+    return;
+  }
+  clearReadWarn();                          // 清掉上一次的失败提示，重新尝试
+  if(!t.hasZh){
+    // 软提示：仍尝试朗读（部分默认语音可念中文），但先告知用户可能无声
+    showReadWarn('<span class="rw-title">ℹ️ 未检测到中文语音包</span>朗读中文可能无声或变调。可在系统设置里下载「<b>中文(普通话)</b>」TTS 语音后再用朗读。仍在尝试朗读中…');
   }
   stopRead();
   startReadAt(0);
@@ -2988,6 +3059,7 @@ if('speechSynthesis' in window){
   $('readVoice').innerHTML='<option value="">（浏览器不支持语音）</option>';
   $('readStatus').textContent='⚠️ 当前浏览器不支持语音朗读，请换 Chrome / Edge';
   $('readPlay').disabled=true;
+  showReadWarn('<span class="rw-title">⚠️ 当前浏览器不支持语音朗读</span>常见于 <b>微信 / QQ 等 App 内置浏览器</b>。请改用手机系统自带的 <b>Chrome / Edge / Safari</b> 打开本页，再点「▶ 播放」即可朗读。');
 }
 
 /* ===== 升级：续写/同风格结果存为章节 · 续写接力 · 朗读已整理章节 ===== */
