@@ -66,6 +66,10 @@
   .empty-tip{font-size:13px;color:var(--sub);text-align:center;padding:14px 0}
   /* 添加 Key */
   .add-key{margin-top:14px;padding-top:14px;border-top:1px dashed var(--line)}
+  .key-tools{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:12px}
+  .key-test-msg{font-size:12.5px;color:var(--sub);line-height:1.5}
+  .key-test-msg.ok{color:#2e7d4f}
+  .key-test-msg.err{color:#c0392b}
   .add-key-row{display:flex;gap:8px;flex-wrap:wrap}
   .add-key-row .ak-name{flex:1;min-width:120px;border:1px solid var(--line);border-radius:10px;padding:9px 12px;font-size:14px;background:#fff;font-family:inherit}
   .add-key-row .ak-val{flex:2;min-width:200px;border:1px solid var(--line);border-radius:10px;padding:9px 12px;font-size:14px;background:#fff;font-family:inherit}
@@ -146,12 +150,49 @@
   /* 章节列表 */
   .book-title{margin-bottom:12px}
   .chapter{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:10px;background:#fcfbf9}
-  .chapter .ch-head{display:flex;gap:10px;align-items:center}
-  .chapter .ch-head input{flex:1}
+  .chapter .ch-head{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .chapter .ch-head input{flex:1;min-width:110px}
   .chapter .ch-prev{font-size:12px;color:var(--sub);margin-top:6px;max-height:60px;overflow:auto;white-space:pre-wrap}
+  .chapter .ch-full{margin-top:8px;background:#fffdf9;border:1px solid var(--line);border-radius:10px;
+    padding:12px 14px;max-height:440px;overflow:auto;white-space:pre-wrap;
+    font-size:14.5px;line-height:1.85;color:var(--ink);-webkit-user-select:text;user-select:text}
   .chapter .ch-del{background:#f7e3de;color:var(--brand);border:none;border-radius:8px;padding:6px 10px;cursor:pointer;font-size:12px}
   .chapter .ch-move{background:#e8eef5;color:#3a6ea5;border:none;border-radius:8px;padding:6px 10px;cursor:pointer;font-size:12px}
+  .chapter .ch-copy{background:#e6f2ea;color:#2e7d4f;border:none;border-radius:8px;padding:6px 10px;cursor:pointer;font-size:12px}
+  .chapter .ch-copy:active{transform:scale(.94)}
+  .chapter .ch-view{background:#f1ecf7;color:#6a4fa3;border:none;border-radius:8px;padding:6px 10px;cursor:pointer;font-size:12px}
+  .chapter .ch-view:active{transform:scale(.94)}
   .ch-summary{font-size:13px;color:var(--sub);margin:10px 0}
+  /* 章节列表：常驻下载栏（永远可见）+ 可折叠明细（章节多了收起） */
+  .book-bar{display:flex;gap:14px;align-items:center;flex-wrap:wrap;
+    background:#f7f4ef;border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-top:12px}
+  .book-bar .ch-summary{margin:0;flex:1;min-width:170px}
+  .book-bar .controls{margin:0}
+  .ch-fold{border:1px solid var(--line);border-radius:12px;background:#fff;margin-top:8px;overflow:hidden}
+  .ch-fold>summary{list-style:none;cursor:pointer;padding:13px 14px;display:flex;align-items:center;gap:10px;
+    font-size:14px;color:var(--ink);user-select:none}
+  .ch-fold>summary::-webkit-details-marker{display:none}
+  .ch-fold>summary::before{content:"▸";color:var(--sub);font-size:12px;transition:transform .15s}
+  .ch-fold[open]>summary::before{content:"▾"}
+  .ch-fold[open]>summary{border-bottom:1px solid var(--line)}
+  .ch-fold-title{font-weight:600}
+  .ch-fold-count{font-size:12px;color:var(--sub)}
+  .ch-fold>div{padding:2px 14px 14px}
+  /* 章节定位：关键字搜索 + 编号跳转条 */
+  .ch-find{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
+  .ch-find input{flex:1;min-width:150px;padding:8px 12px;border:1px solid var(--line);
+    border-radius:10px;background:#fff;font-size:13px;font-family:inherit;color:var(--ink)}
+  .ch-find input:focus{outline:none;border-color:var(--brand2)}
+  .ch-find-info{font-size:12px;color:var(--sub);white-space:nowrap}
+  .ch-nav{display:none;gap:6px;overflow-x:auto;padding:2px 0 10px;-webkit-overflow-scrolling:touch}
+  .ch-nav::-webkit-scrollbar{height:4px}
+  .ch-nav::-webkit-scrollbar-thumb{background:#ddd6ca;border-radius:4px}
+  .ch-jump{flex:none;min-width:34px;height:30px;padding:0 8px;border:1px solid var(--line);
+    background:#fff;border-radius:8px;font-size:12px;cursor:pointer;color:var(--sub);font-family:inherit}
+  .ch-jump:hover{border-color:var(--brand2);color:var(--brand)}
+  .ch-jump:active{background:#fff2e8}
+  @keyframes chFlash{0%,100%{background:#fcfbf9}25%,60%{background:#ffeede}}
+  .chapter.flash{animation:chFlash 1.3s ease}
 
   /* ===== 引擎切换（本地离线 / AI）===== */
   .engine-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:12px}
@@ -394,6 +435,8 @@
         <button class="btn ghost" id="contCopy">复制全文</button>
         <button class="btn ghost" id="contDown">📥 下载完整小说</button>
         <button class="btn ghost" id="contRead">🎧 朗读整本</button>
+        <button class="btn ghost" id="contAddCh">➕ 存为章节</button>
+        <button class="btn ghost" id="contAgain">✍ 继续往下写</button>
         <span class="count" id="contCount"></span>
       </div>
       <div class="status" id="contStatus"></div>
@@ -463,6 +506,7 @@
         <button class="btn ghost" id="mimicCopy">复制</button>
         <button class="btn ghost" id="mimicDown">下载 .txt</button>
         <button class="btn ghost" id="mimicRead">🎧 朗读</button>
+        <button class="btn ghost" id="mimicAddCh">➕ 存为章节</button>
         <span class="count" id="mimicCount"></span>
       </div>
       <div class="status" id="mimicStatus"></div>
@@ -481,45 +525,43 @@
         </div>
       </div>
       <div class="engine-note" id="aiCleanNote"></div>
-      <!-- 清洗选项已移至顶部「⚙️ 设置控制台」 -->
       <div class="controls" style="margin-top:10px">
         <span class="status" id="cleanStatus" style="margin:0"></span>
       </div>
-      <div id="cleanReport"></div>
     </div>
 
-    <div class="card">
-      <h3>② 清洗结果（可直接手动修改）</h3>
-      <textarea id="cleanOut" placeholder="点上方「🧹 深度清洗」后，干净正文会出现在这里，可以随意编辑…"></textarea>
-      <div class="out-tools">
-        <button class="btn ghost sm" id="cleanRead">🎧 朗读</button>
-        <button class="btn ghost sm" id="cleanBack">↩ 写回输入框再洗一遍</button>
-        <button class="btn ghost sm" id="cleanCopy">📋 复制</button>
-        <button class="btn ghost sm" id="cleanDownload">📥 下载 TXT</button>
-        <span class="count" id="cleanCount"></span>
-      </div>
-      <div class="controls" style="margin-top:12px">
-        <div class="field">
-          <label>本章标题（用于拼书目录，留空自动编号）</label>
-          <input type="text" id="chTitle" placeholder="如：第一章 重生归来">
-        </div>
-        <button class="btn sm" id="addCh">➕ 添加为章节</button>
-        <button class="btn sm ghost" id="splitCh">✂️ 自动按「第X章」拆分</button>
-      </div>
-    </div>
+    <!-- 清洗结果不再展示：直接自动存为章节。此隐藏框仅供 AI 精修的流式输出缓存使用 -->
+    <textarea id="cleanOut" hidden></textarea>
 
     <div class="card">
-      <h3>③ 章节列表（可添加不同小说 / 不同章节）</h3>
+      <h3>② 章节列表（粘贴一次自动加一章，攒够拼成整本）</h3>
       <div class="field book-title">
         <label>整本书名（下载文件名 & 标题）</label>
         <input type="text" id="bookName" placeholder="如：逆袭人生" value="我的小说合集">
       </div>
-      <div class="ch-summary" id="chSummary">还没有章节。回到上方粘贴一章内容、点「一键清洗」，就会自动加进来。</div>
-      <div id="chapterList"></div>
-      <div class="controls" style="margin-top:8px">
-        <button class="btn" id="downloadBook">📦 生成并下载整本 TXT</button>
-        <button class="btn ghost sm" id="clearCh">清空章节</button>
+
+      <!-- 常驻栏：无论多少章，不用滚动就能一步拿到整本书 -->
+      <div class="book-bar">
+        <div class="ch-summary" id="chSummary">还没有章节。回到上方粘贴一章内容、点「一键清洗」，就会自动加进来。</div>
+        <div class="controls" style="margin-top:0">
+          <button class="btn" id="downloadBook">📦 生成并下载整本 TXT</button>
+          <button class="btn ghost sm" id="clearCh">清空章节</button>
+        </div>
       </div>
+
+      <!-- 章节明细：章节多了默认收起，点开才看，不占篇幅 -->
+      <details class="ch-fold" id="chFold">
+        <summary>
+          <span class="ch-fold-title">📂 查看 / 管理章节</span>
+          <span class="ch-fold-count" id="chFoldCount"></span>
+        </summary>
+        <div class="ch-find">
+          <input type="text" id="chFind" placeholder="🔍 找章节：输入标题或正文里的词（如：重生、决战）">
+          <span class="ch-find-info" id="chFindInfo"></span>
+        </div>
+        <div class="ch-nav" id="chNav"></div>
+        <div id="chapterList"></div>
+      </details>
     </div>
   </section>
 
@@ -534,6 +576,7 @@
           <input type="file" id="readFile" accept=".txt,.md,.docx,.pdf" hidden>
         </label>
         <button class="btn ghost sm" id="readClear">清空</button>
+        <button class="btn ghost sm" id="readBook">📚 朗读已整理章节</button>
         <span class="status" id="readStatus" style="margin:0"></span>
       </div>
     </div>
@@ -610,6 +653,11 @@
         </div>
         <div class="hint" id="keyHint">Key 仅保存在你浏览器本地，不会上传任何第三方。可添加多个，点圆圈选「当前使用」的那条。</div>
       </div>
+      <div class="key-tools">
+        <button type="button" class="btn ghost sm" id="testKey">🔌 测试连接</button>
+        <button type="button" class="btn ghost sm" id="chkBalance">💰 查余额</button>
+        <span class="key-test-msg" id="keyTestMsg"></span>
+      </div>
     </div>
 
     <div class="grid">
@@ -666,11 +714,37 @@ function loadSettings(){
   if(s.model) $('model').value = s.model;
   if(typeof s.temperature==='number'){ $('temperature').value=s.temperature; $('tempVal').textContent=s.temperature; }
   renderKeys();
+  loadUiPrefs();
 }
 function getStore(){ return JSON.parse(localStorage.getItem('novelAI')||'{}'); }
 function setStore(obj){
   const s = getStore();
   localStorage.setItem('novelAI', JSON.stringify({...s, ...obj}));
+}
+/* 记住各面板的上次设置（文风/字数/语音/语速等），刷新不丢 */
+function saveUiPrefs(){
+  const s = getStore(); s.ui = s.ui || {};
+  s.ui.contStyle   = $('contStyle').value;
+  s.ui.contWords   = $('contWords').value;
+  s.ui.mimicStyle  = $('mimicStyle').value;
+  s.ui.mimicWords  = $('mimicWords').value;
+  s.ui.readRate    = $('readRate').value;
+  s.ui.readVol     = $('readVol').value;
+  s.ui.readPitch   = $('readPitch').value;
+  const rv = $('readVoice');
+  if(rv._voices && rv._voices[rv.value]){ s.ui.readVoiceName = rv._voices[rv.value].name; window.__savedVoiceName = s.ui.readVoiceName; }
+  localStorage.setItem('novelAI', JSON.stringify(s));
+}
+function loadUiPrefs(){
+  const ui = (getStore().ui) || {};
+  if(ui.contStyle)   $('contStyle').value = ui.contStyle;
+  if(ui.contWords)   $('contWords').value = ui.contWords;
+  if(ui.mimicStyle)  $('mimicStyle').value = ui.mimicStyle;
+  if(ui.mimicWords)  $('mimicWords').value = ui.mimicWords;
+  if(ui.readRate){  $('readRate').value = ui.readRate;  $('rateVal').textContent  = ui.readRate; }
+  if(ui.readVol){   $('readVol').value  = ui.readVol;   $('volVal').textContent   = ui.readVol; }
+  if(ui.readPitch){ $('readPitch').value = ui.readPitch; $('pitchVal').textContent = ui.readPitch; }
+  if(ui.readVoiceName) window.__savedVoiceName = ui.readVoiceName;  // 语音列表就绪后由 populateVoices 应用
 }
 function maskKey(k){
   if(!k) return '';
@@ -1411,25 +1485,23 @@ const CLEAN = (function () {
     /^\s*(?:共|总共)\s*\d{1,4}\s*(?:页|章)\s*$/,
   ];
 
-  /* 成人/博彩/导航广告连词（常挤成一行，如「传媒91传媒精东…」） */
+  /* 成人/博彩/导航广告「签名词」：只在正文中几乎不可能出现，才计入广告墙密度。
+     注意：曾放入的「做爱/性爱/裸体/丝袜/尤物/激情…」等是小说正文常用词，
+     会从正文里扎堆计成分、把它误判成广告墙删掉——已彻底移除。
+     这里只保留站方品牌/引流签名词（传媒/麻豆/无码/福利/直播…），
+     正文小说（哪怕露骨）永远不会凑齐 3 个以上，故不会误伤。 */
   const SPAM_TOKENS = [
-    "传媒", "91", "精东", "麻豆", "映画", "猫爪", "蜜桃", "天美", "星空", "果冻", "尤物",
-    "杏吧", "51", "福利", "自拍", "偷拍", "探花", "直播", "国产", "日韩", "欧美", "亚洲",
-    "中文字幕", "字幕", "无码", "有码", "高清", "在线", "视频", "影视", "影院",
-    "情色", "色情", "黄色", "成人", "激情", "裸体", "巨乳", "丝袜", "美腿",
-    "乱伦", "人妻", "萝莉", "熟女", "SM", "sm", "三级", "禁片", "约炮", "援交",
-    "做爱", "性交", "性爱", "换妻", "绿帽", "群交", "内射", "口交", "肛交",
+    "传媒", "91", "精东", "麻豆", "映画", "猫爪", "蜜桃", "天美", "星空", "果冻", "杏吧", "51", "福利",
+    "探花", "直播", "国产", "日韩", "欧美", "亚洲", "中文字幕", "字幕", "无码", "有码", "高清",
+    "在线", "视频", "影视", "影院", "情色", "色情", "黄色", "成人", "禁片", "约炮", "援交", "三级",
     "porn", "Porn", "AV", "av", "xvideos", "pornhub", "xhamster", "se", "SE",
-    // ↓ 补充：成人站常用引流词 / 品牌名
-    // 注意：这里只做「密集度计分」，要 3 个以上词扎堆才会判成广告墙，
-    // 所以宁可多收也不能收高频日常字（"热""东京"这类会误伤正文，已剔除）。
     "草榴", "sis", "SIS", "xyz", "XYZ", "91porn", "91pron",
     "一本道", "东京热", "色情五月", "丁香五月", "人人爽", "人人澡", "人人碰",
     "爱威", "麻豆传媒", "麻豆映画", "麻豆厂", "星空传媒",
     "精东传媒", "精东影业", "蜜桃传媒", "猫爪",
     "杏吧", "杏吧原创", "色中色", "色界", "色一点", "国产自拍", "偷拍自拍",
     "美女视频", "美女直播", "美女图片", "性感美女", "嫩模",
-    "无码av", "有码av", "av女优", "女优", "里番",
+    "无码av", "有码av", "av女优", "女优",
     "快播", "QVOD", "qvod", "西瓜影音", "吉吉影音", "先锋影音",
     "磁力", "磁力链", "BT种子", "种子下载", "迅雷下载", "网盘下载",
     "精品国产", "日韩无码", "欧美无码", "亚洲无码", "中文字幕",
@@ -1445,25 +1517,29 @@ const CLEAN = (function () {
     return score;
   }
 
-  /* ===== 色情 / 成人广告：组合强特征，命中即整行删除 =====
-     设计原则：单词不删（"澳门""东京"在正文里很常见），
-     必须"敏感词 + 推广/站点动作词"成对出现才判定为广告，
-     这样既能删干净，又不会误伤正文。 */
+  /* ===== 色情 / 成人广告：只认"站方引流/广告特征"，绝不因"内容主题"删正文 =====
+     核心原则：敏感词（色情/成人/裸体…）必须与"纯引流动作词"
+     （注册/网址/福利/入口/导航…）成对出现才判删。
+     正文里的亲密描写不会带这些引流词，因此原样保留，绝不被误删。 */
   const ADULT_HARD = [
-    /(?:免费|在线|高清|极速|海量|最新|尽在|尽享)?\s*(?:看片|看毛片|看A片|看黄片|看三级|看福利片|看成人片|看大片)/,
-    /(?:无码|有码|高清|全裸|露点|激情|限制级|18禁|十八禁)[^\n]{0,8}(?:视频|影片|电影|大片|片源|在线|观看|播放|下载|资源|专区|频道)/,
-    /(?:色情|情色|黄色|成人|限制级|18禁|十八禁)[^\n]{0,8}(?:网站|网址|论坛|社区|电影|影片|视频|图片|图片区|频道|专区|内容|导航|入口|大全)/,
-    /(?:成人|色情|情色|黄色|福利)[^\n]{0,6}(?:福利|资源|专区|导航|入口|发布页|永久|地址|网址)/,
-    /(?:宅男|老司机|你懂的|懂的来|懂的入|秒懂|男人|福利姬)[^\n]{0,10}(?:福利|专区|导航|入口|网址|地址|必看|首选|天堂|圣地|请进|点击|都懂)/,
-    /(?:夜夜|午夜|深夜|一夜|同城|约炮|约爱|寻欢|偷欢|艳遇)[^\n]{0,8}(?:啪|激情|约会|交友|神器|福利|专区|网站|入口|导航)/,
-    /(?:自拍|偷拍|裸聊|裸体|脱衣|卖淫|嫖娼|援交|换妻|约炮)[^\n]{0,10}(?:视频|影片|直播|网站|网址|论坛|专区|入口|点击|注册|下载|免费|在线|观看|资源|图片)/,
+    // 明确的色情观看动作（正文几乎不会写"看黄片/看A片"这类词）
+    /(?:看毛片|看A片|看黄片|看三级|看福利片)/,
+    // 成人站具体品牌 / 网址 IP（正文绝不会写）
+    /\b(?:pornhub|xvideos|xhamster|xnxx|redtube|youporn|brazzers|onlyfans|javdb|javbus|javlibrary|91porn|t66y|sexinsex)\b/i,
+    /(?:麻豆传媒|精东传媒|91传媒|香蕉传媒|大象传媒|果冻传媒|第一福利|永久地址)/,
+    // 敏感词 + 纯引流动作词（主题词本身不构成删除条件；下载/微信/点击等正文常见词已移除，避免误删正文）
+    /(?:色情|情色|黄色|成人)[^\n]{0,8}(?:网站|网址|论坛|社区|导航|入口|大全|合集|汇总|发布页|永久|地址|专区|福利|资源|注册|免费看|在线看|VIP|充值)/,
+    /(?:无码|有码|全裸|露点)[^\n]{0,8}(?:网站|网址|注册|免费看|福利|专区|入口|导航|VIP|充值)/,
+    /(?:宅男|老司机|你懂的|懂的来|福利姬)[^\n]{0,10}(?:福利|专区|导航|入口|网址|地址|必看|首选|天堂|圣地|请进|都懂)/,
+    /(?:约炮|约爱|寻欢|偷欢|艳遇)[^\n]{0,10}(?:福利|专区|网站|入口|导航|注册|免费看)/,
+    /(?:自拍|偷拍|裸聊|裸体|脱衣|卖淫|嫖娼|援交|换妻)[^\n]{0,10}(?:网站|网址|论坛|专区|入口|注册|免费看|福利)/,
+    /(?:做爱|性交|性爱|口交|肛交|内射|群交|乱伦|强奸|迷奸)[^\n]{0,10}(?:网站|网址|论坛|专区|入口|注册)/,
+    // 博彩 / 赌博 / 棋牌（本身就是小说以外的内容，整组保留）
     /(?:葡京|新葡京|威尼斯人|太阳城|金沙|美高梅|银河|英皇|永利|菲律宾|柬埔寨)[^\n]{0,12}(?:赌场|娱乐城|官网|注册|开户|投注|开户送|官网直达|上线)/,
     /(?:博彩|赌博|赌场|彩票|私彩|外围|六合|时时彩|赛车|分分彩)[^\n]{0,10}(?:注册|开户|投注|下注|开户送|官网|平台|网站|充值|返水|返利|彩金|提现|走势)/,
     /(?:棋牌|捕鱼|老虎机|德州|炸金花|斗地主|麻将|真人)[^\n]{0,10}(?:下载|注册|充值|开户|官网|平台|送彩金|提现|娱乐)/,
-    /(?:做爱|性交|性爱|口交|肛交|内射|群交|乱伦|强奸|迷奸)[^\n]{0,10}(?:视频|影片|直播|网站|网址|论坛|专区|入口|点击|注册|下载|免费|在线|观看|资源|小说)/,
-    /(?:色情|成人|情色)\s*(?:网站|网址|导航|入口|论坛|社区|小说)\s*(?:大全|合集|汇总|推荐|排行榜)/,
-    /\b(?:pornhub|xvideos|xhamster|xnxx|redtube|youporn|brazzers|onlyfans|javdb|javbus|javlibrary|91porn|t66y|sexinsex)\b/i,
-    /(?:传媒|影业|映画|原创)\s*(?:出品|制作|官网|入口|导航|地址)/,
+    // 隐晦引流：拼音 / 谐音 / 符号变体
+    /(?:se|SE|色\s*[qQ]|黄\s*[sS][eE]|\*+|＊+)\s*(?:情|色)/,
   ];
 
   /* ===== 软件 / App 推广 ===== */
@@ -1488,23 +1564,26 @@ const CLEAN = (function () {
     /(?:十年老店|老品牌|口碑商家|诚信商家)[^\n]{0,10}(?:信誉|保障|品质|值得信赖|验证)/,
     /(?:隐私发货|保密发货|匿名发货|包邮到家)/,
     /(?:去码|魔改|换脸|破解版|内购|无限金币|无限钻石)[^\n]{0,10}(?:软件|工具|app|APP|版|下载|观看)/,
-    /(?:爱爱|激情|裸聊|诱惑|尤物|火辣|魅惑|魅惑盛宴)[^\n]{0,8}(?:直播|视频|平台|社区|app|APP|狂欢)/,
-    /(?:电视直播|体育直播|卫视|全网影视|全网视频|海量影视)[^\n]{0,10}(?:频道|软件|app|APP|观看|下载|畅看)/,
+    /(?:电视直播|体育直播|卫视|全网影视|全网视频|海量影视)[^\n]{0,10}(?:频道|软件|app|APP|下载|畅看)/,
   ];
 
   function isAdultAd(l) {
     const s = (l || "").replace(/\s/g, "");
     if (!s) return false;
+    if (looksLikeProse(l)) return false;   // 像正文（含露骨描写）绝不误判为广告
     return ADULT_HARD.some((re) => re.test(s));
   }
   function isAppPromo(l) {
     const s = (l || "").replace(/\s/g, "");
     if (!s || s.length > 160) return false;
+    if (looksLikeProse(l)) return false;   // 正文里提到「安卓/下载」等绝不整行删
     return APP_PROMO.some((re) => re.test(s));
   }
   function isPromoHard(l) {
     const s = (l || "").replace(/\s/g, "");
     if (!s || s.length > 200) return false;
+    // 注：PROMO_HARD 均为「纯广告签名词」（春药/新葡京/PG电子/赌博/去码魔改…），
+    // 正文小说绝不会出现，故不做 bodyScore 护栏（护栏反而会让带句号的赌博广告漏网）。
     return PROMO_HARD.some((re) => re.test(s));
   }
   /* 广告串形态：超长、无任何标点、几乎没有虚词（正文长句不可能这样写） */
@@ -1634,19 +1713,23 @@ const CLEAN = (function () {
       [l, c] = cnt(l, RE_BRACKET_PROMO, " "); rep.bracket += c; if (c) hit.bracket = true;
     }
     if (opt.rmAd) {
-      INLINE_PROMO.forEach((re) => {
-        [l, c] = cnt(l, re, " "); rep.promo += c; if (c) hit.promo = true;
-      });
-      // 混在正文句子里的色情广告 / 软件推广片段，剔掉片段、留下正文
-      ADULT_HARD_G.forEach((re) => {
-        [l, c] = cnt(l, re, " "); rep.adult += c; if (c) hit.adult = true;
-      });
-      APP_PROMO_G.forEach((re) => {
-        [l, c] = cnt(l, re, " "); rep.app += c; if (c) hit.app = true;
-      });
-      PROMO_HARD_G.forEach((re) => {
-        [l, c] = cnt(l, re, " "); rep.adult += c; if (c) hit.adult = true;
-      });
+      // 关键保护：只在「整行明显不像正文（looksLikeProse 为假）」时才剔广告片段。
+      // 正文小说（哪怕含露骨描写、哪怕句里碰巧出现“安卓…下载”这类组合）
+      // 一律不动，绝不挖字，避免破坏原文。
+      if (!looksLikeProse(line)) {
+        INLINE_PROMO.forEach((re) => {
+          [l, c] = cnt(l, re, " "); rep.promo += c; if (c) hit.promo = true;
+        });
+        ADULT_HARD_G.forEach((re) => {
+          [l, c] = cnt(l, re, " "); rep.adult += c; if (c) hit.adult = true;
+        });
+        APP_PROMO_G.forEach((re) => {
+          [l, c] = cnt(l, re, " "); rep.app += c; if (c) hit.app = true;
+        });
+        PROMO_HARD_G.forEach((re) => {
+          [l, c] = cnt(l, re, " "); rep.adult += c; if (c) hit.adult = true;
+        });
+      }
     }
     // 行首的站名前缀：「笔趣阁 www.x.com 」→ 直接去掉前缀
     if (opt.rmSite) {
@@ -1672,7 +1755,14 @@ const CLEAN = (function () {
     const DROP = { drop: true }, KEEP = { drop: false };
 
     if (TITLE_RE.test(l)) return KEEP;                       // 标题行永不删
-    if (opt.rmRepeat && ctx.repeatSet.has(l.trim())) { rep.repeat++; return DROP; }
+    // 去重：整段重复（复制粘贴出错）只删“后续副本”，保留首次出现，
+    // 绝不把重复的小说正文两份都删掉。
+    if (opt.rmRepeat && ctx.repeatSet.has(l.trim())) {
+      const key = l.trim();
+      const n = (ctx.seen.get(key) || 0) + 1;
+      ctx.seen.set(key, n);
+      if (n >= 2) { rep.repeat++; return DROP; }
+    }
 
     // 站点声明 / 年龄警告（成人站点尾部，正文锚定法会误判为正文）
     if ((opt.rmAd || opt.rmSite) && isDisclaimerLine(l)) { rep.disclaimer++; return DROP; }
@@ -1722,7 +1812,9 @@ const CLEAN = (function () {
     // 营销广告整段（带标点、词库难覆盖，靠"像不像正文"判定）
     if (opt.rmAd && isPromoLine(l)) { rep.ad++; return DROP; }
     // 广告 / 求票 / 导航
-    if (opt.rmAd) {
+    // 护栏：像正文（以句尾标点结尾或含引号）的行绝不因广告词库整行删，
+    // 避免正文里巧合出现「安卓…下载」「请收藏本书」等组合被误删。
+    if (opt.rmAd && !looksLikeProse(l)) {
       let n = 0;
       for (let i = 0; i < AD_PATTERNS.length; i++) if (AD_PATTERNS[i].test(l)) n++;
       if (n >= 1 && (s.length <= 50 || n >= 2)) { rep.ad++; return DROP; }
@@ -1731,7 +1823,8 @@ const CLEAN = (function () {
     // 书名 / 作者等元信息
     if (opt.rmMeta && META_RE.test(l) && s.length <= 60) { rep.meta++; return DROP; }
 
-    // 智能短行 / 乱码行
+    // 智能短行 / 乱码行：删「无句尾标点、无引号」的短行（UI/广告/导航碎片）。
+    // 正文里的短台词/短句都带句尾标点（"滚。""他走了。"）或引号，天然被保留，绝不误删。
     if (opt.rmShort) {
       const strong = opt.strength === "strong" || opt.strength === "nuclear";
       const mild = opt.strength === "mild";
@@ -1746,7 +1839,7 @@ const CLEAN = (function () {
     }
     // 彻底模式：短行必须"够像小说正文"才留下（对付整页全选复制的推荐位/导航条）
     if (opt.strength === "nuclear" && !isTitle(l)) {
-      if (cnLen(l) < 40 && bodyScore(l) < 2) { rep.junk++; return DROP; }
+      if (cnLen(l) < 40 && !looksLikeProse(l)) { rep.junk++; return DROP; }
     }
     return KEEP;
   }
@@ -1758,13 +1851,25 @@ const CLEAN = (function () {
   const PROMO_WORDS = ["免费","优惠","注册","会员","充值","福利","限时","特惠","优惠券","红包","折扣","满减","秒杀","抢购","狂欢","返利","邀请","代理","招商","加盟","客服","长按识别","扫码","下载APP","看片","看剧","追剧","福利姬","磁力","种子","网盘","盘搜","高清无码","在线看","免费看","抢先看","独播","首播","主播","充值币","阅币","书币","金币","钻石","通票","包邮","分期","白条","花呗","借款","贷款","理财","基金","股票","彩票","博彩","赌博","赌场","开奖","走势图","私彩","外围","盘口","投注","下注","押注","赢钱","翻倍","倍投","稳赚","包赢","带单","包月","推广","广告","客户端","官网","本站","本网","VIP","vip","充值中心","充值送","新人","立减","专属","特权","海量","畅读","畅享","随便看","任你看","宅男","资源","免费阅读","全网","最热","火爆","人气","必看","客服","咨询","热线","售后","合作伙伴","共同成长","视频","观看","剧集","直播","热播","上映","影评","优质","精选","独家","7*24","24小时","全天候","全年无休","免费在线","一起观看","讨论","最新","商务合作","招商加盟"];
   function narrCount(s){ let n=0; for(const c of NARR_WORDS) if(s.indexOf(c)>=0) n++; return n; }
   function promoCount(s){ let n=0; for(const w of PROMO_WORDS) if(s.indexOf(w)>=0) n++; return n; }
+  // 判断一行是否「像正常小说正文」——只看句尾标点与引号，与广告词完全无关。
+  // 正文小说的常态是「以句号/叹号/问号/省略号结尾」或「含引号对话」；
+  // 广告/UI 碎片（首页 分类 排行、有声小说文字小说…）几乎从不在行尾带这些。
+  // 用于护栏：像正文就绝不整行删、绝不挖字，从根本上避免误伤小说内容。
+  function looksLikeProse(line) {
+    const s = (line || "").replace(/\s/g, "");
+    if (!s) return false;
+    if (endsStop(s)) return true;   // 以句尾标点结尾 = 完整句子
+    if (hasQuote(s)) return true;   // 含引号对话
+    return false;
+  }
   // 一行"像正文/剧情"的得分：>0 像正文，<=0 不像
   function bodyScore(line){
     const s = (line||"").replace(/\s/g,"");
     if(!s) return 0;                                  // 空行中立
     if(isDisclaimerLine(line)) return -5;             // 站点声明/年龄警告 → 必非正文
-    if(isAdultAd(line)) return -10;                   // 色情广告 → 必非正文
-    if(isAppPromo(line)) return -6;                   // 软件推广 → 必非正文
+    // 注意：下列判定直接用底层正则，避免与 isAdultAd/isAppPromo 的 bodyScore 护栏形成递归
+    if(ADULT_HARD.some((re) => re.test(s))) return -10; // 色情广告 → 必非正文
+    if(APP_PROMO.some((re) => re.test(s))) return -6;   // 软件推广 → 必非正文
     if(TITLE_RE.test(s)) return 100;                  // 标题是强锚
     const cn = (s.match(/[\u4e00-\u9fa5]/g)||[]).length;
     if(cn===0) return -1;                             // 纯符号/英文/数字行
@@ -1810,8 +1915,9 @@ const CLEAN = (function () {
     const parts = [];
     lines.forEach((l) => {
       const s = l.replace(/\s/g, "");
-      if (s.length >= 20 && endsStop(s) && bodyScore(l) >= 4 &&
-          !isAdultAd(s) && !isPromoHard(s) && !isAppPromo(s) && !hasSite(s) &&
+      // 用 looksLikeProse 选正文（与广告正则无关，避免被污染的 bodyScore 漏选正文行）
+      if (s.length >= 20 && endsStop(s) && looksLikeProse(l) &&
+          !isAdultAd(l) && !isPromoHard(l) && !isAppPromo(l) && !hasSite(l) &&
           !/https?|www\.|\.com|@/i.test(s)) parts.push(s);
     });
     const text = parts.join("");
@@ -1845,29 +1951,20 @@ const CLEAN = (function () {
     return n ? sum / n : 0;
   }
 
-  /* ---------------- 4. 正文范围定位（正文锚定法） ---------------- */
+  /* ---------------- 4. 正文范围定位（极保守：只裁首尾「明确非正文」行） ---------------- */
   function trimRange(t, opt, rep) {
     if (!opt.trimRange) return t;
     const lines = t.split("\n");
     if (lines.length < 6) return t;                   // 太短不裁，避免误删
-    const scores = lines.map(bodyScore);
-    // 每个"像正文"的行，向两侧扩展到第一个非正文(分<0)边界，得到正文区间
-    const keep = new Array(lines.length).fill(false);
-    function spanOf(i) {
-      let lo = i, hi = i;
-      while (lo > 0 && scores[lo - 1] >= 0) lo--;
-      while (hi < lines.length - 1 && scores[hi + 1] >= 0) hi++;
-      return [lo, hi];
-    }
-    for (let i = 0; i < lines.length; i++) {
-      if (scores[i] >= 1) {
-        const [lo, hi] = spanOf(i);
-        for (let j = lo; j <= hi; j++) keep[j] = true;
-      }
-    }
-    let first = -1, last = -1;
-    keep.forEach((k, i) => { if (k) { if (first < 0) first = i; last = i; } });
-    if (first < 0 || last - first < 3) return t;      // 找不到可信正文则不动
+    // 只删首尾连续「明确不像正文」（looksLikeProse 为假：无叙事词、无句尾标点）的行；
+    // 任何看起来像正文的行都绝不裁掉，哪怕它碰巧命中了某条广告正则。宁可漏裁也不误伤小说。
+    // 像正文（句尾标点/引号）或章节标题（无标点）都视为正文，绝不裁掉
+    const isBody = lines.map((l) => looksLikeProse(l) || TITLE_RE.test(l));
+    let first = 0, last = lines.length - 1;
+    while (first < last && !isBody[first]) first++;
+    while (last > first && !isBody[last]) last--;
+    if (first === 0 && last === lines.length - 1) return t;
+    if (last - first < 3) return t;                   // 正文太少则整体不动，宁可不裁
     if (first > 0) rep.head += first;
     if (last < lines.length - 1) rep.tail += (lines.length - 1 - last);
     return lines.slice(first, last + 1).join("\n");
@@ -1976,6 +2073,7 @@ const CLEAN = (function () {
     const minRep = (opt.strength === "strong" || opt.strength === "nuclear") ? 2 : 3;
     const repeatSet = new Set();
     freq.forEach((v, k) => { if (v >= minRep && !TITLE_RE.test(k)) repeatSet.add(k); });
+    const seen = new Map();   // 去重计数：保留首次出现，删后续副本
 
     const out = [];
     for (let i = 0; i < lines.length; i++) {
@@ -1989,14 +2087,18 @@ const CLEAN = (function () {
       const st = inlineStrip(lines[i], opt, rep);
       if (!st.text) continue;                   // 整行都是垃圾
       const v = judge(st.text, opt, rep,
-        { idx: i, total: lines.length, freq, repeatSet, hit: st.hit });
+        { idx: i, total: lines.length, freq, repeatSet, seen, hit: st.hit });
       if (v.drop) { rep.lines++; continue; }
-      // 自适应模型过滤：不像这本小说行文的行（新式广告、变异推广）一律删
+      // 自适应模型过滤（最后一道保险）：只删「极低贴合度 + 明确广告信号」的行。
+      // 绝不单凭「不像正文」就删——用户要求小说内容一律保留，宁可漏删也不误伤正文。
       if (model && !TITLE_RE.test(st.text) && cnLen(st.text) >= 6) {
         const fit = bodyFitness(model, st.text);
         const hq = hasQuote(st.text);
         const weird = /[\dA-Za-zＡ-Ｚａ-ｚ０-９%￥＠＊]/.test(st.text);
-        if ((fit < -2.4 && !hq) || fit < -3.4 || (fit < -2.0 && weird && !hq)) {
+        const s2 = st.text.replace(/\s/g, "");
+        const wall = adWallScore(s2);
+        const promo = promoCount(s2);
+        if (fit < -4.5 && (weird || wall >= 2 || promo >= 1 || !endsStop(s2))) {
           rep.model++; rep.lines++; continue;
         }
       }
@@ -2262,139 +2364,126 @@ $("cleanBtn").onclick = () => {
       return;
     }
     lastCleanResult = r;
-    $("cleanOut").value = r.text;
-    setCount($("cleanCount"), r.text);
-    renderCleanReport(r);
-    let autoMsg = "";
-    if (r.text.trim() && autoAddChapter(true)) {
-      autoMsg = " · 已自动存为第 " + chapters.length + " 章「" +
-        chapters[chapters.length - 1].title + "」，继续粘贴下一章即可";
+    const n = r.text.trim() ? autoAddChapter(r.text) : 0;
+    if (n > 0) {
+      $("cleanStatus").textContent = "✅ 已自动存为 " + n + " 个新章节（共 " + chapters.length +
+        " 章，删了 " + r.report.lines + " 行垃圾）。继续粘贴下一章即可";
+    } else if (r.text.trim()) {
+      $("cleanStatus").textContent = "⚠️ 内容与上一章相同，已忽略（是不是重复点了？）";
+    } else {
+      $("cleanStatus").textContent = "⚠️ 没剩下正文，可能整页都是广告，换一章内容试试";
     }
-    $("cleanStatus").textContent = r.text.trim()
-      ? "✅ 清洗完成（" + countChars(r.text) + " 字）" + autoMsg
-      : "⚠️ 没剩下正文，试试把「清洗强度」调到温和";
   }, 20);
 };
-function renderCleanReport(r) {
-  const rep = r.report;
-  const tags = [
-    ["网址/邮箱/QQ/微信", rep.url], ["站点水印", rep.site + rep.promo],
-    ["广告求票导航", rep.ad + rep.ui], ["评论区", rep.comment],
-    ["版权免责", rep.copyright], ["站点声明/年龄警告", rep.disclaimer], ["页码分隔线", rep.page],
-    ["色情/赌博广告", rep.adult], ["软件推广", rep.app], ["智能识别可疑行", rep.model],
-    ["书名作者信息", rep.meta], ["重复水印行", rep.repeat],
-    ["可疑短行/乱码", rep.short + rep.junk], ["括号内推广", rep.bracket],
-    ["首部裁切", rep.head], ["尾部裁切", rep.tail],
-  ].filter((x) => x[1] > 0);
-  let html = '<div class="report"><div class="r-head">🧾 清洗报告</div>' +
-    "共删除 <b>" + rep.lines + "</b> 行垃圾：" +
-    (tags.length
-      ? tags.map((t) => '<span class="r-tag hot">' + t[0] + " ×" + t[1] + "</span>").join("")
-      : '<span class="r-tag ok">没发现垃圾</span>');
-  html += '<div style="margin-top:6px">保留正文 <b>' + countChars(r.text) +
-    "</b> 字（不含空格） · 强度：智能</div></div>";
-  if (r.leftover.length) {
-    html += '<div class="leftover">⚠️ 还剩 <b>' + r.leftover.length +
-      "</b> 处可疑内容（可能是正文本来就要的网址，也可能是没认出来的水印）：<br>" +
-      r.leftover.slice(0, 20).map((x) => "<code>" + escHtml(x) + "</code>").join(" ") +
-      '<div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">' +
-      '<button class="btn ghost sm" id="killLeftover">🗑 一键删掉这些</button>' +
-      '<button class="btn ghost sm" id="keepLeftover">✓ 保留不动</button></div></div>';
-  }
-  $("cleanReport").innerHTML = html;
-  const kb = $("killLeftover");
-  if (kb) kb.onclick = () => {
-    let t = $("cleanOut").value;
-    r.leftover.forEach((x) => { t = t.split(x).join(""); });
-    t = t.replace(/[ \t]+\n/g, "\n").replace(/\n{3,}/g, "\n\n").trim();
-    $("cleanOut").value = t;
-    setCount($("cleanCount"), t);
-    renderCleanReport({ text: t, report: r.report, leftover: [] });
-    const last = chapters[chapters.length - 1];       // 同步更新刚自动入章的内容
-    if (last && last.content === r.text) { last.content = t; renderChapters(); }
-    $("cleanStatus").textContent = "✅ 已删掉 " + r.leftover.length + " 处残留";
-  };
-  const kp = $("keepLeftover");
-  if (kp) kp.onclick = () => {
-    $("cleanReport").innerHTML = $("cleanReport").innerHTML
-      .replace(/<div class="leftover">[\s\S]*$/, "");
-    $("cleanStatus").textContent = "已保留（这些可能是正文的一部分）";
-  };
-}
-/* AI 精修：大模型做语义级整理（离线时不可用，本地深度清洗已能覆盖绝大多数情况） */
+/* 清洗报告 UI 已移除：本地清洗已足够可靠，结果直接自动入章 */
+/* AI 精修：大模型做语义级整理（离线时不可用） */
 $("cleanAI").dataset.label = "✨ AI 精修";
 $("cleanAI").onclick = async () => {
   const raw = $("cleanIn").value.trim();
   if (!raw) { $("cleanStatus").textContent = "⚠️ 请先粘贴内容"; return; }
   const sys = '你是一名文字编辑。下面是从小说网站"全选复制"得到的内容，里面混杂了网站导航菜单、广告、求订阅求票、推荐书单、网友评论、版权声明、网址链接等与正文无关的废话。请只保留纯粹的小说正文（章节标题+故事内容），删除以上所有杂质，并理顺段落（每段之间空一行，去掉多余空行）。只输出清理后的纯正文，不要任何解释。';
-  await callDeepSeek(sys, raw, $("cleanOut"), $("cleanStatus"), $("cleanAI"));
-  const txt = $("cleanOut").value.trim();
-  setCount($("cleanCount"), txt);
-  if (txt && autoAddChapter(true)) {
-    $("cleanStatus").textContent = "✅ AI 精修完成 · 已自动存为第 " +
-      chapters.length + " 章「" + chapters[chapters.length - 1].title + "」";
+  const txt = (await callDeepSeek(sys, raw, $("cleanOut"), $("cleanStatus"), $("cleanAI")) || "").trim();
+  const n = txt ? autoAddChapter(txt) : 0;
+  if (n > 0) {
+    $("cleanStatus").textContent = "✅ AI 精修完成 · 已自动存为 " + n +
+      " 个新章节（共 " + chapters.length + " 章）";
   }
 };
-$("cleanOut").addEventListener("input", () => setCount($("cleanCount"), $("cleanOut").value));
-$("cleanRead").onclick = () => loadToRead($("cleanOut").value);
-$("cleanBack").onclick = () => {
-  if (!$("cleanOut").value.trim()) { $("cleanStatus").textContent = "⚠️ 还没有清洗结果"; return; }
-  $("cleanIn").value = $("cleanOut").value;
-  $("cleanStatus").textContent = "已写回输入框，可继续清洗";
-};
-$("cleanCopy").onclick = () => copyText($("cleanOut").value);
-$("cleanDownload").onclick = () =>
-  downloadText($("cleanOut").value, ($("bookName").value.trim() || "清洗后的正文") + ".txt");
 
 /* ============ 章节状态 ============ */
 let chapters = [];
 let lastAutoIdx = -1;
-function autoAddChapter(fromClean) {
-  const c = $("cleanOut").value.trim();
-  if (!c) return false;
-  // 自动取章节名：优先手动填的，其次自动识别正文里的「第X章 xxx」标题行
-  let title = $("chTitle").value.trim();
-  if (!title && fromClean) {
-    const m = c.match(/(第\s*[零一二三四五六七八九十百千万两0-9]+\s*[章节回卷部篇集话幕][^\n]{0,30})/);
-    if (m) title = m[1].trim();
-  }
-  if (!title) title = "第" + (chapters.length + 1) + "章";
-  // 内容与上一章完全相同 → 视为重复点击，直接忽略，不堆积重复章
+let chSeq = 0;                    // 章节唯一 id（保证展开状态不会因删章/移动而错乱）
+const expandedCh = new Set();     // 已展开的章节 id
+/* 自动把清洗后的文本存为章节：
+   1) 内容里有多个独立成行的「第X章 xxx」标题 → 自动拆成多章
+   2) 与上一章内容相同 → 视为重复点击，忽略 */
+function autoAddChapter(text) {
+  const t = (text || "").trim();
+  if (!t) return 0;
   const last = chapters[chapters.length - 1];
-  if (fromClean && last && last.content === c) {
-    $("chTitle").value = "";
-    return true;
+  if (last && last.content === t) return 0;
+
+  // 只认「整行就是标题」的行，避免正文里提到“第三章”时被误拆
+  const re = /^[ \t]*(第\s*[零一二三四五六七八九十百千万两0-9]+\s*[章节回卷部篇集话幕][^\n]{0,30})[ \t]*$/gm;
+  const marks = [];
+  let m;
+  while ((m = re.exec(t)) !== null) marks.push([m.index, m[1].trim()]);
+
+  const added = [];
+  if (marks.length >= 2) {
+    if (marks[0][0] > 0 && countChars(t.slice(0, marks[0][0])) > 60) {
+      added.push({ title: "开篇", content: t.slice(0, marks[0][0]).trim() });
+    }
+    marks.forEach(([pos, title], i) => {
+      const end = i + 1 < marks.length ? marks[i + 1][0] : t.length;
+      const body = t.slice(pos, end).trim();
+      if (body) added.push({ title: title, content: body });
+    });
+  } else {
+    added.push({
+      title: marks.length === 1 ? marks[0][1] : ("第" + (chapters.length + 1) + "章"),
+      content: t,
+    });
   }
-  chapters.push({ title, content: c });
+  added.forEach((p) => chapters.push(p));
   lastAutoIdx = chapters.length - 1;
-  $("chTitle").value = "";
   renderChapters();
-  return true;
+  return added.length;
 }
 function renderChapters() {
   const list = $("chapterList");
   list.innerHTML = "";
   chapters.forEach((ch, i) => {
+    if (ch.id === undefined) ch.id = ++chSeq;
+    const open = expandedCh.has(ch.id);
     const div = document.createElement("div");
     div.className = "chapter";
+    div.dataset.idx = i;
     div.innerHTML =
       '<div class="ch-head">' +
         '<span class="badge">第' + (i + 1) + "章</span>" +
         '<input type="text" value="' + escAttr(ch.title) + '" data-i="' + i + '" class="ch-title-in">' +
+        '<button class="ch-copy" data-i="' + i + '" title="复制这一章的清洗后内容">📋 复制</button>' +
+        '<button class="ch-view" data-id="' + ch.id + '">' + (open ? "收起 ▲" : "👁 展开") + "</button>" +
         '<button class="ch-move" data-up="' + i + '">↑</button>' +
         '<button class="ch-del" data-i="' + i + '">删除</button>' +
       "</div>" +
-      '<div class="ch-prev">' + escHtml(ch.content.slice(0, 120)) +
-        (ch.content.length > 120 ? "…" : "") + "</div>";
+      (open
+        ? '<div class="ch-full">' + escHtml(ch.content) + "</div>"
+        : '<div class="ch-prev">' + escHtml(ch.content.slice(0, 120)) +
+          (ch.content.length > 120 ? "…" : "") + "</div>");
     list.appendChild(div);
   });
+  const totalChars = chapters.reduce((s, c) => s + countChars(c.content), 0);
   $("chSummary").textContent = chapters.length
-    ? "共 " + chapters.length + " 章，合计约 " +
-        chapters.reduce((s, c) => s + countChars(c.content), 0) +
-        " 字 · 点「📦 生成并下载整本 TXT」即可拼成一本"
+    ? "已存 " + chapters.length + " 章，合计约 " + totalChars +
+      " 字 · 点右侧「📦 生成并下载整本 TXT」拼成一本"
     : "还没有章节。回到上方粘贴一章内容、点「一键清洗」，就会自动加进来。";
+  const fc = $("chFoldCount");
+  if (fc) fc.textContent = chapters.length ? ("共 " + chapters.length + " 章 · 约 " + totalChars + " 字") : "";
+  // 加第一张时自动展开一次，给用户即时反馈；之后保持用户自己的展开/收起状态
+  const fold = $("chFold");
+  if (fold && chapters.length === 1 && !fold.open) fold.open = true;
   list.querySelectorAll(".ch-title-in").forEach((inp) => {
     inp.addEventListener("input", (e) => { chapters[+e.target.dataset.i].title = e.target.value; });
+  });
+  list.querySelectorAll(".ch-copy").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const ch = chapters[+btn.dataset.i];
+      if (!ch) return;
+      const old = btn.textContent;
+      copyText(ch.content, true);      // 按钮自己给反馈，不再弹窗
+      btn.textContent = "✓ 已复制";
+      setTimeout(() => { btn.textContent = old; }, 1500);
+    });
+  });
+  list.querySelectorAll(".ch-view").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const id = +btn.dataset.id;
+      if (expandedCh.has(id)) expandedCh.delete(id); else expandedCh.add(id);
+      renderChapters();
+    });
   });
   list.querySelectorAll(".ch-del").forEach((btn) => {
     btn.addEventListener("click", () => {
@@ -2412,46 +2501,58 @@ function renderChapters() {
       renderChapters();
     });
   });
+  renderChNav();
+  applyChFilter();
 }
+
+/* ===== 章节定位：编号跳转条 + 关键字搜索（章节多了不用翻到底找）===== */
+function renderChNav() {
+  const nav = $("chNav");
+  if (!nav) return;
+  if (chapters.length < 2) { nav.style.display = "none"; nav.innerHTML = ""; return; }
+  nav.style.display = "flex";
+  nav.innerHTML = chapters.map((c, i) =>
+    '<button type="button" class="ch-jump" data-i="' + i + '" title="' +
+    escAttr(c.title) + '">' + (i + 1) + "</button>").join("");
+  nav.querySelectorAll(".ch-jump").forEach((b) => {
+    b.addEventListener("click", () => jumpToChapter(+b.dataset.i));
+  });
+}
+function jumpToChapter(i) {
+  const inp = $("chFind");
+  if (inp && inp.value.trim()) { inp.value = ""; applyChFilter(); }  // 先清搜索，避免目标被过滤掉
+  const el = $("chapterList").children[i];
+  if (!el) return;
+  el.scrollIntoView({ behavior: "smooth", block: "start" });
+  el.classList.remove("flash");
+  void el.offsetWidth;                       // 重启高亮动画
+  el.classList.add("flash");
+  setTimeout(() => el.classList.remove("flash"), 1500);
+}
+function applyChFilter() {
+  const inp = $("chFind");
+  const list = $("chapterList");
+  if (!list) return;
+  const kw = ((inp && inp.value.trim()) || "").toLowerCase();
+  let shown = 0;
+  Array.prototype.forEach.call(list.children, (el) => {
+    const ch = chapters[+el.dataset.idx];
+    if (!ch) return;
+    const ok = !kw ||
+      String(ch.title).toLowerCase().indexOf(kw) >= 0 ||
+      String(ch.content).toLowerCase().indexOf(kw) >= 0;
+    el.style.display = ok ? "" : "none";
+    if (ok) shown++;
+  });
+  const info = $("chFindInfo");
+  if (info) info.textContent = kw ? ("匹配 " + shown + " / " + chapters.length + " 章") : "";
+}
+$("chFind").addEventListener("input", applyChFilter);
+
 function escHtml(s) {
   return (s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 function escAttr(s) { return escHtml(s).replace(/"/g, "&quot;"); }
-
-$("addCh").onclick = () => {
-  const c = $("cleanOut").value.trim();
-  if (!c) { $("cleanStatus").textContent = "⚠️ 请先清洗出内容"; return; }
-  chapters.push({ title: $("chTitle").value.trim() || "第" + (chapters.length + 1) + "章", content: c });
-  lastAutoIdx = -1;
-  $("chTitle").value = "";
-  renderChapters();
-  $("cleanStatus").textContent = "✅ 已添加为第 " + chapters.length + " 章";
-};
-/* 自动按「第X章」拆分 */
-$("splitCh").onclick = () => {
-  const c = $("cleanOut").value.trim();
-  if (!c) { $("cleanStatus").textContent = "⚠️ 请先清洗出内容"; return; }
-  const re = /(第[零一二三四五六七八九十百千0-9]+[章节][^\n]*)/g;
-  const segs = c.split(re);
-  const titles = [], bodies = [];
-  if (segs[0].trim()) { titles.push("开篇"); bodies.push(segs[0].trim()); }
-  for (let i = 1; i < segs.length; i += 2) {
-    const title = segs[i].trim();
-    const body = (segs[i + 1] || "").trim();
-    if (title) titles.push(title);
-    bodies.push(body);
-  }
-  if (titles.length === 0) {
-    chapters.push({ title: "第一章", content: c });
-    $("cleanStatus").textContent = "未识别到「第X章」，已整体作为一章";
-  } else {
-    titles.forEach((t, i) => { if (bodies[i]) chapters.push({ title: t, content: bodies[i] }); });
-    $("cleanStatus").textContent = "✅ 自动拆出 " +
-      titles.filter((_, i) => bodies[i]).length + " 章";
-  }
-  lastAutoIdx = -1;
-  renderChapters();
-};
 
 $("downloadBook").onclick = () => {
   if (chapters.length === 0) { alert("还没有章节"); return; }
@@ -2472,11 +2573,12 @@ $("clearCh").onclick = () => {
 };
 
 /* ============ 辅助函数 ============ */
-function copyText(t){
+function copyText(t, quiet){
   if(!t) return;
-  navigator.clipboard.writeText(t).then(()=>alert('已复制 ✅')).catch(()=>{
+  const done = quiet ? function(){} : function(){ alert('已复制 ✅'); };
+  navigator.clipboard.writeText(t).then(done).catch(function(){
     const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();
-    document.execCommand('copy');ta.remove();alert('已复制 ✅');
+    document.execCommand('copy');ta.remove();done();
   });
 }
 /* ============ 保存 / 下载（手机可用版）============
@@ -2679,6 +2781,10 @@ function populateVoices(){
   // 尽量恢复之前的选项；否则默认选第一条
   if(saved && list[Number(saved)]) sel.value = saved;
   else if(list[0]) sel.value = '0';
+  if(window.__savedVoiceName){
+    const vi = list.findIndex(v => v.name === window.__savedVoiceName);
+    if(vi >= 0) sel.value = String(vi);
+  }
   return true;
 }
 function ensureVoices(){
@@ -2859,7 +2965,6 @@ function loadToRead(text){
 }
 $('contRead').onclick=()=>loadToRead($('contIn').value);
 $('mimicRead').onclick=()=>loadToRead($('mimicOut').textContent);
-$('cleanRead').onclick=()=>loadToRead($('cleanOut').textContent);
 /* 初始化语音 */
 if('speechSynthesis' in window){
   populateVoices();
@@ -2884,6 +2989,80 @@ if('speechSynthesis' in window){
   $('readStatus').textContent='⚠️ 当前浏览器不支持语音朗读，请换 Chrome / Edge';
   $('readPlay').disabled=true;
 }
+
+/* ===== 升级：续写/同风格结果存为章节 · 续写接力 · 朗读已整理章节 ===== */
+$('contAddCh').onclick = () => {
+  const n = autoAddChapter(getOut($('contOut')));
+  $('contStatus').textContent = n > 0
+    ? '✅ 已把本次续写存入章节列表（' + n + ' 章，共 ' + chapters.length + ' 章）'
+    : '⚠️ 没有可存的内容，或内容与上一章重复';
+};
+$('mimicAddCh').onclick = () => {
+  const n = autoAddChapter(getOut($('mimicOut')));
+  $('mimicStatus').textContent = n > 0
+    ? '✅ 已存入章节列表（' + n + ' 章，共 ' + chapters.length + ' 章）'
+    : '⚠️ 没有可存的内容，或内容与上一章重复';
+};
+/* 续写接力：从原文末尾继续写，免去手动把结果粘回上文框 */
+$('contAgain').onclick = () => {
+  if (!$('contIn').value.trim()) { $('contStatus').textContent = '⚠️ 请先粘贴原文内容'; return; }
+  contBtn.click();
+};
+/* 朗读已整理章节：把清洗/续写攒好的章节拼成一整本直接朗读，不用复制 */
+$('readBook').onclick = () => {
+  if (chapters.length === 0) {
+    $('readStatus').textContent = '⚠️ 还没有整理好的章节，先去「🧹 清洗整理拼书」粘贴整理吧';
+    document.querySelector('[data-tab="clean"]').click();
+    return;
+  }
+  let txt = ($('bookName').value.trim() || '我的小说') + '\n\n';
+  chapters.forEach((c, i) => { txt += '\n' + (c.title || ('第' + (i + 1) + '章')) + '\n\n' + c.content + '\n'; });
+  loadToRead(txt);
+};
+
+/* 各面板设置变更时自动记住（文风/字数/语音/语速等） */
+['contStyle','mimicStyle'].forEach(id=>$(id).addEventListener('change', saveUiPrefs));
+['contWords','mimicWords','readRate','readVol','readPitch'].forEach(id=>$(id).addEventListener('input', saveUiPrefs));
+$('readVoice').addEventListener('change', saveUiPrefs);
+
+/* ===== 配置面板：验证当前 Key 能否调用、查询 DeepSeek 余额 ===== */
+$('testKey').onclick = async () => {
+  const key = getCurrentKey();
+  const msg = $('keyTestMsg');
+  if(!key){ msg.className='key-test-msg err'; msg.textContent='⚠️ 还没有可用的 Key，先添加并选中一个'; return; }
+  msg.className='key-test-msg'; msg.textContent='测试中…';
+  try{
+    const base = $('baseUrl').value.trim().replace(/\/+$/,'');
+    const resp = await fetch(base + '/chat/completions', {
+      method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
+      body: JSON.stringify({model:$('model').value, messages:[{role:'user',content:'hi'}], max_tokens:1, stream:false})
+    });
+    const t = await resp.text();
+    if(resp.ok){ msg.className='key-test-msg ok'; msg.textContent='✅ Key 可用'; }
+    else { let why=''; try{ const j=JSON.parse(t); if(j.error&&j.error.message) why=j.error.message; }catch(e){}
+      msg.className='key-test-msg err'; msg.textContent='❌ 失败（'+resp.status+'）'+(why?('：'+why):''); }
+  }catch(e){ msg.className='key-test-msg err'; msg.textContent='❌ 网络错误：'+e.message+'（若提示 CORS，说明该地址不允许浏览器直接访问）'; }
+};
+$('chkBalance').onclick = async () => {
+  const key = getCurrentKey();
+  const msg = $('keyTestMsg');
+  if(!key){ msg.className='key-test-msg err'; msg.textContent='⚠️ 还没有可用的 Key，先添加并选中一个'; return; }
+  msg.className='key-test-msg'; msg.textContent='查询中…';
+  try{
+    const base = $('baseUrl').value.trim().replace(/\/+$/,'');
+    const resp = await fetch(base + '/user/balance', { headers:{'Authorization':'Bearer '+key} });
+    const t = await resp.text();
+    if(resp.ok){
+      let info=''; try{ const j=JSON.parse(t);
+        if(Array.isArray(j.balance_infos) && j.balance_infos.length){
+          info = j.balance_infos.map(b=> (b.currency||'')+': '+b.total_balance).join('  ');
+        } else if(j.balance!=null){ info = j.balance + (j.currency?(' '+j.currency):''); }
+      }catch(e){}
+      msg.className='key-test-msg ok'; msg.textContent = '✅ ' + (info || '可查询') + '（DeepSeek 账户余额）';
+    } else { let why=''; try{ const j=JSON.parse(t); if(j.error&&j.error.message) why=j.error.message; }catch(e){}
+      msg.className='key-test-msg err'; msg.textContent='❌ 失败（'+resp.status+'）'+(why?('：'+why):''); }
+  }catch(e){ msg.className='key-test-msg err'; msg.textContent='❌ 网络错误：'+e.message; }
+};
 
 loadSettings();
 renderChapters();
