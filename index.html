@@ -248,6 +248,37 @@
     .btn{padding:13px 18px}
     .api-on-left .ak-sub{font-size:10.5px}
   }
+  /* ===== 保存到手机（下载面板 / 提示条）===== */
+  .sv-mask{position:fixed;inset:0;background:rgba(45,32,20,.45);z-index:9998;
+    display:flex;align-items:center;justify-content:center;padding:18px}
+  .sv-box{background:var(--panel);border-radius:16px;box-shadow:0 18px 48px rgba(60,40,20,.22);
+    width:100%;max-width:430px;max-height:88vh;overflow:auto;padding:20px 20px 14px}
+  .sv-box h4{font-size:16px;margin-bottom:4px}
+  .sv-sub{font-size:12.5px;color:var(--sub);line-height:1.65;margin-bottom:14px}
+  .sv-tip{font-size:12.5px;line-height:1.6;margin-bottom:14px;border-radius:10px;padding:10px 12px}
+  .sv-tip.warn{background:#fff8e6;border:1px solid #f0d59e;color:#8a5d08}
+  .sv-tip.info{background:#f2f6fb;border:1px solid #cfdeee;color:#2c5c86}
+  .sv-list{display:flex;flex-direction:column;gap:10px}
+  .sv-item{display:flex;align-items:center;gap:12px;width:100%;text-align:left;
+    background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 14px;
+    cursor:pointer;transition:.18s;font-family:inherit;color:inherit}
+  .sv-item:hover{border-color:var(--brand2);background:#fffaf7}
+  .sv-item:active{transform:scale(.985)}
+  .sv-item>div{flex:1;min-width:0}
+  .sv-item .sv-ico{font-size:20px;flex:none;line-height:1}
+  .sv-item .sv-t{font-size:14px;font-weight:600}
+  .sv-item .sv-d{font-size:11.5px;color:var(--sub);margin-top:3px;line-height:1.5}
+  .sv-item.rec{border-color:var(--brand);background:#fff6f2}
+  .sv-item .sv-badge{margin-left:auto;flex:none;font-size:10.5px;color:#fff;background:var(--brand);
+    border-radius:20px;padding:2px 8px}
+  .sv-close{margin-top:14px;width:100%;background:transparent;border:1px solid var(--line);
+    border-radius:10px;padding:9px;color:var(--sub);font-size:13px;cursor:pointer;font-family:inherit}
+  .sv-toast{position:fixed;left:50%;transform:translateX(-50%);bottom:22px;z-index:9999;
+    background:#2f2a24;color:#fff;border-radius:12px;padding:11px 14px 11px 16px;font-size:13px;
+    box-shadow:0 10px 30px rgba(0,0,0,.25);display:flex;align-items:center;gap:12px;max-width:94vw}
+  .sv-toast button{background:var(--brand);border:0;color:#fff;border-radius:8px;
+    padding:7px 12px;font-size:12.5px;cursor:pointer;font-family:inherit;flex:none;white-space:nowrap}
+  .sv-toast .sv-x{background:transparent;color:rgba(255,255,255,.6);font-size:16px;padding:2px 4px}
 </style>
 </head>
 <body>
@@ -260,70 +291,13 @@
   <!-- ===== API 状态横幅（置顶，提醒 API 会产生费用）===== -->
   <div class="api-banner" id="apiBanner"></div>
 
-  <!-- ===== 设置区（API Key 管理器）===== -->
-  <details class="settings" id="settingsBox" open>
-    <summary>⚙️ API 设置（可选 · 不配 Key 也能用全部功能）</summary>
-
-    <div class="card api-key-card">
-      <div class="ak-head">
-        <label>DeepSeek API Key 管理</label>
-        <div class="ak-state" id="keyState"></div>
-      </div>
-
-      <!-- 总开关：使用 / 不使用 API -->
-      <div class="api-on-row">
-        <div class="api-on-left">
-          <b>⚡ 使用 API</b>
-          <span class="ak-sub">关闭即离线模式：清洗 / 拼书 / 朗读本来就是本地功能；续写与同风格会自动切到「本地离线引擎」，不用 Key 也能用（长句逻辑不如 AI）。想用 AI 大模型时，再打开此开关即可，Key 会一直保留</span>
-        </div>
-        <label class="switch">
-          <input type="checkbox" id="apiOn">
-          <span class="slider"></span>
-        </label>
-      </div>
-
-      <!-- 已保存的 Key 列表 -->
-      <div id="keyList" class="key-list"></div>
-
-      <!-- 添加新 Key -->
-      <div class="add-key">
-        <div class="add-key-row">
-          <input type="text" id="newKeyName" placeholder="备注名（如：主用 / 备用1）" class="ak-name">
-          <input type="password" id="newKeyVal" placeholder="sk-xxxxxxxxxxxxxxxx" class="ak-val">
-          <button type="button" class="btn sm" id="addKeyBtn">➕ 添加</button>
-        </div>
-        <div class="hint" id="keyHint">Key 仅保存在你浏览器本地，不会上传任何第三方。可添加多个，点圆圈选「当前使用」的那条。</div>
-      </div>
-    </div>
-
-    <div class="grid">
-      <div class="field">
-        <label>API 地址（一般无需修改）</label>
-        <input type="text" id="baseUrl" value="https://api.deepseek.com">
-      </div>
-      <div class="field">
-        <label>模型</label>
-        <select id="model">
-          <option value="deepseek-chat">deepseek-chat（推荐）</option>
-          <option value="deepseek-reasoner">deepseek-reasoner（深度思考）</option>
-        </select>
-      </div>
-      <div class="field">
-        <label>创造力（Temperature）</label>
-        <div class="row">
-          <input type="range" id="temperature" min="0" max="1.5" step="0.1" value="0.8">
-          <span class="val" id="tempVal">0.8</span>
-        </div>
-      </div>
-    </div>
-  </details>
-
   <!-- ===== 标签页 ===== -->
   <div class="tabs">
     <div class="tab active" data-tab="continue">✍️ 小说续写</div>
     <div class="tab" data-tab="mimic">🎭 同风格创作</div>
     <div class="tab" data-tab="clean">🧹 清洗整理拼书</div>
     <div class="tab" data-tab="read">🎧 朗读</div>
+    <div class="tab" data-tab="set">⚙️ 配置</div>
   </div>
 
   <!-- ===== 功能一：续写 ===== -->
@@ -500,29 +474,14 @@
     <div class="card">
       <h3>① 粘贴复制的小说原文（含广告/废话也没关系）</h3>
       <div class="input-box">
-        <textarea id="cleanIn" placeholder="把从小说网站全选复制的内容粘贴到这里。网址、裸域名、邮箱、QQ群、微信号、站点水印、广告求票、导航按钮、评论区、版权声明都会被自动识别并清除…"></textarea>
+        <textarea id="cleanIn" placeholder="【用法：粘贴 → 点下方按钮 → 自动存为章节；再粘贴 → 再点 → 自动成为下一章】从小说网站全选复制的内容直接粘进来即可，网址、站点水印、广告、赌博/色情推广、导航按钮、评论区、版权声明都会被自动清除…"></textarea>
         <div class="input-actions">
-          <button class="btn sm" id="cleanBtn">🧹 深度清洗</button>
+          <button class="btn sm" id="cleanBtn">🧹 一键清洗 · 自动存为下一章</button>
           <button class="btn sm" id="cleanAI">✨ AI 精修</button>
         </div>
       </div>
       <div class="engine-note" id="aiCleanNote"></div>
-      <details class="clean-opts" id="cleanOptsBox">
-        <summary>🧰 清洗选项（默认全开，点一下即可关掉某一项）</summary>
-        <div class="controls" style="margin-top:10px">
-          <div class="field" style="flex:0 0 auto;min-width:168px">
-            <label>清洗强度</label>
-            <select id="cleanStrength">
-              <option value="normal" selected>标准（推荐）</option>
-              <option value="mild">温和（保守，宁可留着）</option>
-              <option value="strong">激进（宁杀错不放过）</option>
-            </select>
-          </div>
-          <button class="btn ghost sm" id="cleanOptAll">全部勾选</button>
-          <button class="btn ghost sm" id="cleanOptNone">全部取消</button>
-        </div>
-        <div class="opt-grid" id="cleanOptGrid"></div>
-      </details>
+      <!-- 清洗选项已移至顶部「⚙️ 设置控制台」 -->
       <div class="controls" style="margin-top:10px">
         <span class="status" id="cleanStatus" style="margin:0"></span>
       </div>
@@ -555,7 +514,7 @@
         <label>整本书名（下载文件名 & 标题）</label>
         <input type="text" id="bookName" placeholder="如：逆袭人生" value="我的小说合集">
       </div>
-      <div class="ch-summary" id="chSummary">还没有章节，清理后点「添加为章节」即可。</div>
+      <div class="ch-summary" id="chSummary">还没有章节。回到上方粘贴一章内容、点「一键清洗」，就会自动加进来。</div>
       <div id="chapterList"></div>
       <div class="controls" style="margin-top:8px">
         <button class="btn" id="downloadBook">📦 生成并下载整本 TXT</button>
@@ -619,6 +578,64 @@
     </div>
   </section>
 
+  <!-- ===== 功能五：配置（API）===== -->
+  <section class="panel" id="panel-set">
+    <div class="card api-key-card">
+      <div class="ak-head">
+        <label>DeepSeek API Key 管理</label>
+        <div class="ak-state" id="keyState"></div>
+      </div>
+
+      <!-- 总开关：使用 / 不使用 API -->
+      <div class="api-on-row">
+        <div class="api-on-left">
+          <b>⚡ 使用 API</b>
+          <span class="ak-sub">关闭即离线模式：清洗 / 拼书 / 朗读本来就是本地功能；续写与同风格会自动切到「本地离线引擎」，不用 Key 也能用（长句逻辑不如 AI）。想用 AI 大模型时，再打开此开关即可，Key 会一直保留</span>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="apiOn">
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <!-- 已保存的 Key 列表 -->
+      <div id="keyList" class="key-list"></div>
+
+      <!-- 添加新 Key -->
+      <div class="add-key">
+        <div class="add-key-row">
+          <input type="text" id="newKeyName" placeholder="备注名（如：主用 / 备用1）" class="ak-name">
+          <input type="password" id="newKeyVal" placeholder="sk-xxxxxxxxxxxxxxxx" class="ak-val">
+          <button type="button" class="btn sm" id="addKeyBtn">➕ 添加</button>
+        </div>
+        <div class="hint" id="keyHint">Key 仅保存在你浏览器本地，不会上传任何第三方。可添加多个，点圆圈选「当前使用」的那条。</div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="field">
+        <label>API 地址（一般无需修改）</label>
+        <input type="text" id="baseUrl" value="https://api.deepseek.com">
+      </div>
+      <div class="field">
+        <label>模型</label>
+        <select id="model">
+          <option value="deepseek-chat">deepseek-chat（推荐）</option>
+          <option value="deepseek-reasoner">deepseek-reasoner（深度思考）</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>创造力（Temperature）</label>
+        <div class="row">
+          <input type="range" id="temperature" min="0" max="1.5" step="0.1" value="0.8">
+          <span class="val" id="tempVal">0.8</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="hint" style="margin-top:12px">配置一次即可，以后不用再管。不配 API 也能用全部功能：清洗 / 拼书 / 朗读本来就是本地的，续写和同风格会自动用「本地离线引擎」。</div>
+  </section>
+
   <footer>内容仅在你本地处理；启用 API 时才会与 DeepSeek 传输，绝不上传其他任何服务器 · Made with WorkBuddy</footer>
 </div>
 
@@ -670,9 +687,9 @@ function getCurrentKey(){
 function getKey(){ return getCurrentKey(); }
 function keyBlockedReason(){
   const s = getStore();
-  if(!s.keys || s.keys.length===0) return '⚠️ 请先在 API 设置添加并选中一个 DeepSeek API Key';
+  if(!s.keys || s.keys.length===0) return '⚠️ 请先在「⚙️ 配置」标签里添加并选中一个 DeepSeek API Key';
   const cur = s.keys.find(x=>x.current);
-  if(!cur) return '⚠️ 请在 API 设置点选一个「当前使用」的 Key';
+  if(!cur) return '⚠️ 请在「⚙️ 配置」标签里点选一个「当前使用」的 Key';
   return '⚠️ 当前 Key 无效，请检查后重试';
 }
 function renderKeys(){
@@ -730,7 +747,7 @@ function refreshApiAvailability(){
     b.innerHTML='<span class="banner-icon">⚡</span><div><b>API 已启用：'+esc(cur.name)+'</b><span>续写 / 同风格 / AI 精修 会产生费用，请谨慎使用</span></div>';
   } else {
     b.className='api-banner warn';
-    b.innerHTML='<span class="banner-icon">⚠️</span><div><b>API 开关已打开，但未选中 Key</b><span>请在下方 API 设置里点选一条「当前使用」，否则无法调用</span></div>';
+    b.innerHTML='<span class="banner-icon">⚠️</span><div><b>API 开关已打开，但未选中 Key</b><span>请在「⚙️ 配置」标签里点选一条「当前使用」，否则无法调用</span></div>';
   }
   // 按钮不再一刀切禁用：选「本地离线引擎」时照样可用
   updateEngineUI(on);
@@ -746,7 +763,7 @@ function updateEngineUI(apiOn){
       b.classList.toggle('disabled', isAi && !on);
       b.title = isAi
         ? (on ? 'AI 大模型：有逻辑、理解上下文（消耗 API 额度）'
-               : '当前未配置可用 Key，仅高亮不生效；请到「⚙️ API 设置」添加并选中 Key，或点「💻 本地离线」')
+               : '当前未配置可用 Key，仅高亮不生效；请到上方「⚙️ 配置」标签添加并选中 Key，或点「💻 本地离线」')
         : '本地离线引擎：免费、不联网、不上传内容';
     });
     const aiBtn = $(btnId);
@@ -754,7 +771,7 @@ function updateEngineUI(apiOn){
     if(mode==='ai'){
       aiBtn.textContent = '开始'+(pfx==='cont'?'续写':'创作')+'（AI）';
       aiBtn.disabled = !on;
-      aiBtn.title = on ? '' : '需在 API 设置打开开关并选中一个 Key，或切到「本地离线引擎」';
+      aiBtn.title = on ? '' : '需在「⚙️ 配置」标签打开开关并选中一个 Key，或切到「本地离线引擎」';
     }else{
       aiBtn.textContent = '开始'+(pfx==='cont'?'续写':'创作')+'（本地）';
       aiBtn.disabled = false;
@@ -765,7 +782,7 @@ function updateEngineUI(apiOn){
       note.className = 'engine-note' + (mode==='ai'&&!on ? ' warn' : '');
       note.innerHTML = (mode==='ai')
         ? (on ? '⚡ <b>AI 引擎</b>：情节有逻辑、能理解上下文，会消耗 API 额度。'
-              : '⚠️ <b>AI 引擎</b>未就绪：请到「⚙️ API 设置」打开开关并选中 Key，或点上方「💻 本地离线」直接用。')
+              : '⚠️ <b>AI 引擎</b>未就绪：请到上方「⚙️ 配置」标签打开开关并选中 Key，或点上方「💻 本地离线」直接用。')
         : '💻 <b>本地离线引擎</b>：完全在你电脑/手机上运行，不联网、不花一分钱、不上传任何内容。'
           + '它会学习这段原文的用词、句式与节奏来续写，<b>能模仿味道，但长句逻辑靠不住</b>，适合找语感、破卡文、凑初稿；'
           + '要真正有逻辑的情节请切到「⚡ AI 大模型」。';
@@ -776,7 +793,7 @@ function updateEngineUI(apiOn){
   const ca = $('cleanAI');
   if(ca){
     ca.disabled = !on;
-    ca.title = on ? '' : '离线时请用「🧹 深度清洗」（本地引擎，已足够干净）';
+    ca.title = on ? '' : '离线时请用「🧹 一键清洗」（本地引擎，已足够干净）';
   }
   const cn = $('aiCleanNote');
   if(cn){
@@ -793,7 +810,14 @@ function getEngine(pfx){
   if(s[key]==='local' || s[key]==='ai') return s[key];
   return apiReady() ? 'ai' : 'local';
 }
-function setEngine(pfx, mode){ const o={}; o['engine_'+pfx]=mode; setStore(o); updateEngineUI(); }
+function setEngine(pfx, mode){
+  const o={}; o['engine_'+pfx]=mode; setStore(o); updateEngineUI();
+  // 想用 AI 但还没配好 Key → 自动带到「⚙️ 配置」标签页
+  if(mode==='ai' && !apiReady()){
+    const t = document.querySelector('.tab[data-tab="set"]');
+    if(t) t.click();
+  }
+}
 function esc(t){ return (t||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 function saveBaseSettings(){
   setStore({
@@ -1297,6 +1321,24 @@ const CLEAN = (function () {
     /(?:复制|拷贝|转载|摘录)[^\n]{0,10}(?:请注明|注明出处|标明出处)/,
   ];
 
+  /* 导航条 / 面包屑 / 推荐位（整页全选复制时最容易混进来的一类） */
+  const NAV_WORD =
+    "(?:首页|主页|书城|分类|排行|榜单|书架|完本|连载|搜索|登录|注册|我的|下载|充值|会员" +
+    "|玄幻|奇幻|武侠|仙侠|都市|言情|历史|军事|科幻|网游|悬疑|恐怖|轻小说|同人|名著|小说)";
+  const NAV_PATTERNS = [
+    /(?:您的位置|当前位置|所在位置|你的位置|您在这里)/,
+    new RegExp("^" + NAV_WORD + "(?:[\\s|>》›·、,，|｜／/]{1,3}" + NAV_WORD + "){2,}"),
+    /(?:大家都在看|大家在看|都在看|本周热门|本月热门|今日热门|热门排行|人气排行|点击榜|推荐榜|收藏榜|新书榜|编辑推荐|站长推荐|精品推荐|强力推荐|同类好书|相似推荐|看过此书|读过此书|为您推荐|为你推荐|推荐阅读|猜你在看|猜你喜欢|喜欢这本书|看过本书)/,
+    /(?:本书|本小说)?\s*(?:星级|评分)\s*[:：]?\s*[★☆\d.\s]{1,12}/,
+  ];
+  function isNavLine(l) {
+    const raw = l || "";
+    const s = raw.replace(/\s/g, "");
+    if (!s) return false;
+    // 面包屑/导航条靠分隔符识别，所以去空白前后都要试一次
+    return NAV_PATTERNS.some((re) => re.test(raw) || re.test(s));
+  }
+
   /* 单行 UI 词（去掉空白后完全相等才删） */
   const UI_EXACT = new Set([
     "首页", "分类", "排行", "排行榜", "书架", "目录", "上一章", "下一章", "上一页",
@@ -1378,14 +1420,108 @@ const CLEAN = (function () {
     "乱伦", "人妻", "萝莉", "熟女", "SM", "sm", "三级", "禁片", "约炮", "援交",
     "做爱", "性交", "性爱", "换妻", "绿帽", "群交", "内射", "口交", "肛交",
     "porn", "Porn", "AV", "av", "xvideos", "pornhub", "xhamster", "se", "SE",
+    // ↓ 补充：成人站常用引流词 / 品牌名
+    // 注意：这里只做「密集度计分」，要 3 个以上词扎堆才会判成广告墙，
+    // 所以宁可多收也不能收高频日常字（"热""东京"这类会误伤正文，已剔除）。
+    "草榴", "sis", "SIS", "xyz", "XYZ", "91porn", "91pron",
+    "一本道", "东京热", "色情五月", "丁香五月", "人人爽", "人人澡", "人人碰",
+    "爱威", "麻豆传媒", "麻豆映画", "麻豆厂", "星空传媒",
+    "精东传媒", "精东影业", "蜜桃传媒", "猫爪",
+    "杏吧", "杏吧原创", "色中色", "色界", "色一点", "国产自拍", "偷拍自拍",
+    "美女视频", "美女直播", "美女图片", "性感美女", "嫩模",
+    "无码av", "有码av", "av女优", "女优", "里番",
+    "快播", "QVOD", "qvod", "西瓜影音", "吉吉影音", "先锋影音",
+    "磁力", "磁力链", "BT种子", "种子下载", "迅雷下载", "网盘下载",
+    "精品国产", "日韩无码", "欧美无码", "亚洲无码", "中文字幕",
+    "福利专区", "福利导航", "福利入口", "福利地址", "福利发布页",
+    "宅男天堂", "宅男必备", "宅男福利", "男人天堂", "男人最爱",
+    "夜夜啪", "夜夜啪啪", "一区二区", "亚洲欧美",
   ];
   function adWallScore(s) {
-    let score = 0, seen = new Set();
+    let score = 0; const seen = new Set();
     for (const t of SPAM_TOKENS) {
       if (s.indexOf(t) >= 0 && !seen.has(t)) { score++; seen.add(t); }
     }
     return score;
   }
+
+  /* ===== 色情 / 成人广告：组合强特征，命中即整行删除 =====
+     设计原则：单词不删（"澳门""东京"在正文里很常见），
+     必须"敏感词 + 推广/站点动作词"成对出现才判定为广告，
+     这样既能删干净，又不会误伤正文。 */
+  const ADULT_HARD = [
+    /(?:免费|在线|高清|极速|海量|最新|尽在|尽享)?\s*(?:看片|看毛片|看A片|看黄片|看三级|看福利片|看成人片|看大片)/,
+    /(?:无码|有码|高清|全裸|露点|激情|限制级|18禁|十八禁)[^\n]{0,8}(?:视频|影片|电影|大片|片源|在线|观看|播放|下载|资源|专区|频道)/,
+    /(?:色情|情色|黄色|成人|限制级|18禁|十八禁)[^\n]{0,8}(?:网站|网址|论坛|社区|电影|影片|视频|图片|图片区|频道|专区|内容|导航|入口|大全)/,
+    /(?:成人|色情|情色|黄色|福利)[^\n]{0,6}(?:福利|资源|专区|导航|入口|发布页|永久|地址|网址)/,
+    /(?:宅男|老司机|你懂的|懂的来|懂的入|秒懂|男人|福利姬)[^\n]{0,10}(?:福利|专区|导航|入口|网址|地址|必看|首选|天堂|圣地|请进|点击|都懂)/,
+    /(?:夜夜|午夜|深夜|一夜|同城|约炮|约爱|寻欢|偷欢|艳遇)[^\n]{0,8}(?:啪|激情|约会|交友|神器|福利|专区|网站|入口|导航)/,
+    /(?:自拍|偷拍|裸聊|裸体|脱衣|卖淫|嫖娼|援交|换妻|约炮)[^\n]{0,10}(?:视频|影片|直播|网站|网址|论坛|专区|入口|点击|注册|下载|免费|在线|观看|资源|图片)/,
+    /(?:葡京|新葡京|威尼斯人|太阳城|金沙|美高梅|银河|英皇|永利|菲律宾|柬埔寨)[^\n]{0,12}(?:赌场|娱乐城|官网|注册|开户|投注|开户送|官网直达|上线)/,
+    /(?:博彩|赌博|赌场|彩票|私彩|外围|六合|时时彩|赛车|分分彩)[^\n]{0,10}(?:注册|开户|投注|下注|开户送|官网|平台|网站|充值|返水|返利|彩金|提现|走势)/,
+    /(?:棋牌|捕鱼|老虎机|德州|炸金花|斗地主|麻将|真人)[^\n]{0,10}(?:下载|注册|充值|开户|官网|平台|送彩金|提现|娱乐)/,
+    /(?:做爱|性交|性爱|口交|肛交|内射|群交|乱伦|强奸|迷奸)[^\n]{0,10}(?:视频|影片|直播|网站|网址|论坛|专区|入口|点击|注册|下载|免费|在线|观看|资源|小说)/,
+    /(?:色情|成人|情色)\s*(?:网站|网址|导航|入口|论坛|社区|小说)\s*(?:大全|合集|汇总|推荐|排行榜)/,
+    /\b(?:pornhub|xvideos|xhamster|xnxx|redtube|youporn|brazzers|onlyfans|javdb|javbus|javlibrary|91porn|t66y|sexinsex)\b/i,
+    /(?:传媒|影业|映画|原创)\s*(?:出品|制作|官网|入口|导航|地址)/,
+  ];
+
+  /* ===== 软件 / App 推广 ===== */
+  const APP_PROMO = [
+    /(?:安卓|Android|android|苹果|iOS|IOS|iphone|iPhone|iPad|鸿蒙|华为|小米|OPPO|vivo)[^\n]{0,8}(?:版|客户端|安装包|APP|app)?[^\n]{0,8}(?:下载|安装)/,
+    /(?:扫码|扫一扫|长按|识别二维码|二维码)[^\n]{0,10}(?:下载|安装)[^\n]{0,8}(?:APP|app|客户端|软件|应用)?/,
+    /(?:应用宝|应用市场|苹果商店|App\s*Store|AppStore|Google\s*Play|华为应用|小米商店|豌豆荚|360手机助手|腾讯应用宝)[^\n]{0,12}(?:搜索|下载|安装|获取|上线)/,
+    /(?:安装包|apk|APK)[^\n]{0,10}(?:下载|安装|大小|版本|获取|地址)/,
+    /(?:APP|app|软件|应用|客户端)[^\n]{0,10}(?:免费下载|官方下载|最新版|极速版|破解版|内购版|去广告版|纯净版)/,
+    /(?:点击|立即|马上|一键|前往)[^\n]{0,6}(?:下载|安装)[^\n]{0,8}(?:APP|app|客户端|软件|应用|安装包)/,
+    /(?:下载|安装)[^\n]{0,8}(?:APP|app|客户端|软件)[^\n]{0,12}(?:送|领|得|享|即送|领取|送会员|送VIP)/,
+    /(?:手机|电脑)[^\n]{0,6}(?:用户|版)?[^\n]{0,6}(?:请|可|前往|到|去)[^\n]{0,8}(?:下载|安装)/,
+  ];
+
+  /* ===== 赌博 / 药品 / 影视App 等杂项推广（组合特征，单词不删） ===== */
+  const PROMO_HARD = [
+    /(?:百家乐|PG电子|pg电子|葡京|威尼斯人|太阳城|美高梅|永利|金沙|新南京|直营|代理)[^\n]{0,14}(?:奖池|彩金|送你|注册|开户|提现|充值|下注|投注|就爆|佣金|返水|爆分)/,
+    /(?:亿万|千万|百万)?\s*奖池[^\n]{0,10}(?:就爆|即爆|等你|来袭|开启)/,
+    /(?:送你|送|领|即送)\s*\d{2,6}\s*(?:元|币|金币|彩金|体验金)/,
+    /(?:一触就爆|一触即爆|天天赢钱|日赚\w{0,3}|稳赚不赔|大神带飞|上分|下分|梭哈)/,
+    /(?:春药|催情|壮阳|淫药|迷药|成人用品|情趣用品|情趣内衣)[^\n]{0,12}(?:购买|商城|订购|发货|微信|必备|哪家好|效果)/,
+    /(?:十年老店|老品牌|口碑商家|诚信商家)[^\n]{0,10}(?:信誉|保障|品质|值得信赖|验证)/,
+    /(?:隐私发货|保密发货|匿名发货|包邮到家)/,
+    /(?:去码|魔改|换脸|破解版|内购|无限金币|无限钻石)[^\n]{0,10}(?:软件|工具|app|APP|版|下载|观看)/,
+    /(?:爱爱|激情|裸聊|诱惑|尤物|火辣|魅惑|魅惑盛宴)[^\n]{0,8}(?:直播|视频|平台|社区|app|APP|狂欢)/,
+    /(?:电视直播|体育直播|卫视|全网影视|全网视频|海量影视)[^\n]{0,10}(?:频道|软件|app|APP|观看|下载|畅看)/,
+  ];
+
+  function isAdultAd(l) {
+    const s = (l || "").replace(/\s/g, "");
+    if (!s) return false;
+    return ADULT_HARD.some((re) => re.test(s));
+  }
+  function isAppPromo(l) {
+    const s = (l || "").replace(/\s/g, "");
+    if (!s || s.length > 160) return false;
+    return APP_PROMO.some((re) => re.test(s));
+  }
+  function isPromoHard(l) {
+    const s = (l || "").replace(/\s/g, "");
+    if (!s || s.length > 200) return false;
+    return PROMO_HARD.some((re) => re.test(s));
+  }
+  /* 广告串形态：超长、无任何标点、几乎没有虚词（正文长句不可能这样写） */
+  function isAdJam(l) {
+    const raw = l || "";
+    if (TITLE_RE.test(raw)) return false;
+    const s = raw.replace(/\s/g, "");
+    if (s.length < 24) return false;
+    if (/[，。！？、；：…—,.!?;:""]/.test(s)) return false;
+    const fill = (s.match(/[的地得着了是在和与就也都]/g) || []).length;
+    return fill <= 1;
+  }
+  // 行内剔除用的全局版本（预编译一次，避免逐行重建正则）
+  const ADULT_HARD_G = ADULT_HARD.map((re) => new RegExp(re.source, "gi"));
+  const APP_PROMO_G = APP_PROMO.map((re) => new RegExp(re.source, "gi"));
+  const PROMO_HARD_G = PROMO_HARD.map((re) => new RegExp(re.source, "gi"));
+
   /* 很像广告墙：Spam 词密集 + 几乎没有正常句尾 + 非标题 */
   function isAdWallLine(l) {
     const s = l.replace(/\s/g, "");
@@ -1501,6 +1637,16 @@ const CLEAN = (function () {
       INLINE_PROMO.forEach((re) => {
         [l, c] = cnt(l, re, " "); rep.promo += c; if (c) hit.promo = true;
       });
+      // 混在正文句子里的色情广告 / 软件推广片段，剔掉片段、留下正文
+      ADULT_HARD_G.forEach((re) => {
+        [l, c] = cnt(l, re, " "); rep.adult += c; if (c) hit.adult = true;
+      });
+      APP_PROMO_G.forEach((re) => {
+        [l, c] = cnt(l, re, " "); rep.app += c; if (c) hit.app = true;
+      });
+      PROMO_HARD_G.forEach((re) => {
+        [l, c] = cnt(l, re, " "); rep.adult += c; if (c) hit.adult = true;
+      });
     }
     // 行首的站名前缀：「笔趣阁 www.x.com 」→ 直接去掉前缀
     if (opt.rmSite) {
@@ -1531,6 +1677,17 @@ const CLEAN = (function () {
     // 站点声明 / 年龄警告（成人站点尾部，正文锚定法会误判为正文）
     if ((opt.rmAd || opt.rmSite) && isDisclaimerLine(l)) { rep.disclaimer++; return DROP; }
 
+    // 色情 / 成人广告：命中组合强特征即删，不受"像不像正文"保护
+    if ((opt.rmAd || opt.rmSite) && isAdultAd(l)) { rep.adult++; return DROP; }
+    // 软件 / App 推广
+    if (opt.rmAd && isAppPromo(l)) { rep.app++; return DROP; }
+    // 赌博 / 药品 / 影视等杂项推广
+    if ((opt.rmAd || opt.rmSite) && isPromoHard(l)) { rep.adult++; return DROP; }
+    // 广告串形态：一大串无标点无虚词的营销词堆叠
+    if (opt.rmAd && isAdJam(l)) { rep.ad++; return DROP; }
+    // 导航条 / 面包屑 / 推荐位
+    if (opt.rmAd && isNavLine(l)) { rep.ad++; return DROP; }
+
     // 广告墙 / 站名连珠炮（如「传媒91传媒精东传媒麻豆…」）
     if ((opt.rmAd || opt.rmSite) && isAdWallLine(s)) { rep.ad++; return DROP; }
 
@@ -1556,7 +1713,8 @@ const CLEAN = (function () {
     // 站名 + 站方口吻
     if (opt.rmSite && hasSite(l)) {
       const rest = l.replace(SITE_ALL, "");
-      if (cnLen(rest) <= 6 || RE_SITE_FEATURE.test(l) || opt.strength === "strong") {
+      if (cnLen(rest) <= 6 || RE_SITE_FEATURE.test(l) ||
+          opt.strength === "strong" || opt.strength === "nuclear") {
         rep.site++; return DROP;
       }
       SITE_ALL.lastIndex = 0;
@@ -1575,8 +1733,9 @@ const CLEAN = (function () {
 
     // 智能短行 / 乱码行
     if (opt.rmShort) {
-      const strong = opt.strength === "strong", mild = opt.strength === "mild";
-      const limit = strong ? 14 : mild ? 6 : 10;
+      const strong = opt.strength === "strong" || opt.strength === "nuclear";
+      const mild = opt.strength === "mild";
+      const limit = opt.strength === "nuclear" ? 20 : strong ? 14 : mild ? 6 : 10;
       if (s.length < limit && !endsStop(s) && !hasQuote(s)) {
         const dup = (ctx.freq.get(l.trim()) || 1) >= 2;
         const atEdge = ctx.idx < 20 || ctx.idx > ctx.total - 20;
@@ -1584,6 +1743,10 @@ const CLEAN = (function () {
       }
       const cn = (s.match(/[\u4e00-\u9fa5]/g) || []).length;
       if (s.length >= 10 && cn / s.length < (strong ? 0.5 : 0.35)) { rep.junk++; return DROP; }
+    }
+    // 彻底模式：短行必须"够像小说正文"才留下（对付整页全选复制的推荐位/导航条）
+    if (opt.strength === "nuclear" && !isTitle(l)) {
+      if (cnLen(l) < 40 && bodyScore(l) < 2) { rep.junk++; return DROP; }
     }
     return KEEP;
   }
@@ -1600,6 +1763,8 @@ const CLEAN = (function () {
     const s = (line||"").replace(/\s/g,"");
     if(!s) return 0;                                  // 空行中立
     if(isDisclaimerLine(line)) return -5;             // 站点声明/年龄警告 → 必非正文
+    if(isAdultAd(line)) return -10;                   // 色情广告 → 必非正文
+    if(isAppPromo(line)) return -6;                   // 软件推广 → 必非正文
     if(TITLE_RE.test(s)) return 100;                  // 标题是强锚
     const cn = (s.match(/[\u4e00-\u9fa5]/g)||[]).length;
     if(cn===0) return -1;                             // 纯符号/英文/数字行
@@ -1634,6 +1799,50 @@ const CLEAN = (function () {
     if(pc>=1 && /(你|您|请|点击|快来|立即|下载|关注|领取|注册|一起|免费|在线|咨询|客服)/.test(s)) return true;
     if(adWallScore(s)>=3) return true;
     return false;
+  }
+
+  /* ============ 自适应正文模型（思路转变的核心） ============
+     广告词枚举永远追不完。换个思路：从用户粘贴的内容里挑出
+     「高置信正文行」，训练字符 3-gram 模型；再给每一行打分，
+     越不像这本小说行文的行分数越低。广告无论怎么换新词，
+     它的搭配方式都不会像小说正文 —— 自动被认出来。 */
+  function buildBodyModel(lines) {
+    const parts = [];
+    lines.forEach((l) => {
+      const s = l.replace(/\s/g, "");
+      if (s.length >= 20 && endsStop(s) && bodyScore(l) >= 4 &&
+          !isAdultAd(s) && !isPromoHard(s) && !isAppPromo(s) && !hasSite(s) &&
+          !/https?|www\.|\.com|@/i.test(s)) parts.push(s);
+    });
+    const text = parts.join("");
+    if (text.length < 800) return null;   // 正文样本太少，模型不可靠 → 不启用
+    const map = new Map();                // 前 2 字 → 第 3 字的分布
+    for (let i = 0; i + 3 <= text.length; i++) {
+      const p = text.slice(i, i + 2);
+      let m = map.get(p);
+      if (!m) { m = new Map(); map.set(p, m); }
+      m.set(text[i + 2], (m.get(text[i + 2]) || 0) + 1);
+    }
+    return { map: map, trainLen: text.length };
+  }
+  // 行的「正文贴合度」：平均对数概率，越接近 0 越像正文
+  function bodyFitness(model, line) {
+    if (!model) return 0;
+    const s = line.replace(/\s/g, "");
+    if (s.length < 6) return 0;
+    let sum = 0, n = 0;
+    for (let i = 0; i + 3 <= s.length; i++) {
+      const m = model.map.get(s.slice(i, i + 2));
+      if (m) {
+        let tot = 0; m.forEach((v) => { tot += v; });
+        const c = m.get(s[i + 2]) || 0;
+        sum += Math.log(Math.max(c / tot, 0.01));
+      } else {
+        sum += -4;                        // 从没见过的搭配 → 重罚
+      }
+      n++;
+    }
+    return n ? sum / n : 0;
   }
 
   /* ---------------- 4. 正文范围定位（正文锚定法） ---------------- */
@@ -1750,10 +1959,12 @@ const CLEAN = (function () {
     const rep = {
       url: 0, site: 0, ad: 0, ui: 0, repeat: 0, short: 0, page: 0, comment: 0,
       copyright: 0, meta: 0, bracket: 0, promo: 0, junk: 0, lines: 0, head: 0, tail: 0,
-      disclaimer: 0,
+      disclaimer: 0, adult: 0, app: 0, model: 0,
     };
     let t = normalize(raw, opt);
     const lines = t.split("\n");
+    // 自适应正文模型：从本次粘贴内容里学习"什么是正文"
+    const model = buildBodyModel(lines);
 
     // 频率统计：重复水印行
     const freq = new Map();
@@ -1762,18 +1973,33 @@ const CLEAN = (function () {
       if (!k || k.length > 60 || k.length < 3) return;
       freq.set(k, (freq.get(k) || 0) + 1);
     });
-    const minRep = opt.strength === "strong" ? 2 : 3;
+    const minRep = (opt.strength === "strong" || opt.strength === "nuclear") ? 2 : 3;
     const repeatSet = new Set();
     freq.forEach((v, k) => { if (v >= minRep && !TITLE_RE.test(k)) repeatSet.add(k); });
 
     const out = [];
     for (let i = 0; i < lines.length; i++) {
       if (!lines[i].trim()) { out.push(""); continue; }
+      // 关键：拿「原始行」先判广告。inlineStrip 会把广告片段挖掉，
+      // 特征被破坏后 judge 就认不出来了（会留下「澳门 即送彩金…」这类残骸）
+      if ((opt.rmAd || opt.rmSite) && isAdultAd(lines[i])) { rep.adult++; rep.lines++; continue; }
+      if (opt.rmAd && isAppPromo(lines[i])) { rep.app++; rep.lines++; continue; }
+      if ((opt.rmAd || opt.rmSite) && isPromoHard(lines[i])) { rep.adult++; rep.lines++; continue; }
+      if (opt.rmAd && isAdJam(lines[i])) { rep.ad++; rep.lines++; continue; }
       const st = inlineStrip(lines[i], opt, rep);
       if (!st.text) continue;                   // 整行都是垃圾
       const v = judge(st.text, opt, rep,
         { idx: i, total: lines.length, freq, repeatSet, hit: st.hit });
       if (v.drop) { rep.lines++; continue; }
+      // 自适应模型过滤：不像这本小说行文的行（新式广告、变异推广）一律删
+      if (model && !TITLE_RE.test(st.text) && cnLen(st.text) >= 6) {
+        const fit = bodyFitness(model, st.text);
+        const hq = hasQuote(st.text);
+        const weird = /[\dA-Za-zＡ-Ｚａ-ｚ０-９%￥＠＊]/.test(st.text);
+        if ((fit < -2.4 && !hq) || fit < -3.4 || (fit < -2.0 && weird && !hq)) {
+          rep.model++; rep.lines++; continue;
+        }
+      }
       out.push(st.text);
     }
     t = out.join("\n");
@@ -1785,7 +2011,7 @@ const CLEAN = (function () {
     return { text: t, report: rep, leftover };
   }
 
-  return { run, TITLE_RE, scanLeftover };
+  return { run, TITLE_RE, scanLeftover, bodyFitness, buildBodyModel };
 })();
 
 /* ==================================================================
@@ -2012,42 +2238,14 @@ const CLEAN_OPTS = [
   { k: "mergeLines", t: "合并被强行断行", d: "网页换行导致的半截句子合成段落", def: true },
   { k: "indent", t: "段落首行缩进", d: "每段前空两格", def: true },
   { k: "normalizePunct", t: "标点规范化", d: "英标转中标、去重、引号配对", def: true },
-  { k: "autoAdd", t: "清洗后自动加入章节", d: "重复清洗会覆盖上次自动加入的那章", def: false },
 ];
-function loadCleanOpts() {
-  const s = getStore();
-  const saved = s.cleanOpt || {};
-  $("cleanOptGrid").innerHTML = CLEAN_OPTS.map((o) => {
-    const on = o.k in saved ? !!saved[o.k] : o.def;
-    return '<label class="opt"><input type="checkbox" data-k="' + o.k + '"' +
-      (on ? " checked" : "") + "><span>" + o.t + "<small>" + o.d + "</small></span></label>";
-  }).join("");
-  $("cleanOptGrid").querySelectorAll("input").forEach((i) =>
-    i.addEventListener("change", saveCleanOpts));
-  if (s.cleanStrength) $("cleanStrength").value = s.cleanStrength;
-}
-function saveCleanOpts() {
-  const o = {};
-  $("cleanOptGrid").querySelectorAll("input").forEach((i) => { o[i.dataset.k] = i.checked; });
-  setStore({ cleanOpt: o, cleanStrength: $("cleanStrength").value });
-}
+/* 清洗选项 UI 已移除：参数固定为最佳组合（全部开启 + 智能强度），用户无需配置 */
 function getCleanOpt() {
   const o = {};
   CLEAN_OPTS.forEach((x) => { o[x.k] = x.def; });
-  const s = getStore();
-  Object.assign(o, s.cleanOpt || {});
-  o.strength = s.cleanStrength || "normal";
+  o.strength = "nuclear";
   return o;
 }
-$("cleanStrength").addEventListener("change", saveCleanOpts);
-$("cleanOptAll").onclick = () => {
-  $("cleanOptGrid").querySelectorAll("input").forEach((i) => (i.checked = true));
-  saveCleanOpts();
-};
-$("cleanOptNone").onclick = () => {
-  $("cleanOptGrid").querySelectorAll("input").forEach((i) => (i.checked = false));
-  saveCleanOpts();
-};
 
 /* ============ 深度清洗 ============ */
 let lastCleanResult = null;
@@ -2067,9 +2265,14 @@ $("cleanBtn").onclick = () => {
     $("cleanOut").value = r.text;
     setCount($("cleanCount"), r.text);
     renderCleanReport(r);
-    if (getCleanOpt().autoAdd && r.text.trim()) autoAddChapter(true);
+    let autoMsg = "";
+    if (r.text.trim() && autoAddChapter(true)) {
+      autoMsg = " · 已自动存为第 " + chapters.length + " 章「" +
+        chapters[chapters.length - 1].title + "」，继续粘贴下一章即可";
+    }
     $("cleanStatus").textContent = r.text.trim()
-      ? "✅ 清洗完成（" + countChars(r.text) + " 字）" : "⚠️ 没剩下正文，试试把「清洗强度」调到温和";
+      ? "✅ 清洗完成（" + countChars(r.text) + " 字）" + autoMsg
+      : "⚠️ 没剩下正文，试试把「清洗强度」调到温和";
   }, 20);
 };
 function renderCleanReport(r) {
@@ -2078,6 +2281,7 @@ function renderCleanReport(r) {
     ["网址/邮箱/QQ/微信", rep.url], ["站点水印", rep.site + rep.promo],
     ["广告求票导航", rep.ad + rep.ui], ["评论区", rep.comment],
     ["版权免责", rep.copyright], ["站点声明/年龄警告", rep.disclaimer], ["页码分隔线", rep.page],
+    ["色情/赌博广告", rep.adult], ["软件推广", rep.app], ["智能识别可疑行", rep.model],
     ["书名作者信息", rep.meta], ["重复水印行", rep.repeat],
     ["可疑短行/乱码", rep.short + rep.junk], ["括号内推广", rep.bracket],
     ["首部裁切", rep.head], ["尾部裁切", rep.tail],
@@ -2088,9 +2292,7 @@ function renderCleanReport(r) {
       ? tags.map((t) => '<span class="r-tag hot">' + t[0] + " ×" + t[1] + "</span>").join("")
       : '<span class="r-tag ok">没发现垃圾</span>');
   html += '<div style="margin-top:6px">保留正文 <b>' + countChars(r.text) +
-    "</b> 字（不含空格） · 强度：" +
-    ({ mild: "温和", normal: "标准", strong: "激进" }[getCleanOpt().strength] || "标准") +
-    "</div></div>";
+    "</b> 字（不含空格） · 强度：智能</div></div>";
   if (r.leftover.length) {
     html += '<div class="leftover">⚠️ 还剩 <b>' + r.leftover.length +
       "</b> 处可疑内容（可能是正文本来就要的网址，也可能是没认出来的水印）：<br>" +
@@ -2108,6 +2310,8 @@ function renderCleanReport(r) {
     $("cleanOut").value = t;
     setCount($("cleanCount"), t);
     renderCleanReport({ text: t, report: r.report, leftover: [] });
+    const last = chapters[chapters.length - 1];       // 同步更新刚自动入章的内容
+    if (last && last.content === r.text) { last.content = t; renderChapters(); }
     $("cleanStatus").textContent = "✅ 已删掉 " + r.leftover.length + " 处残留";
   };
   const kp = $("keepLeftover");
@@ -2126,7 +2330,10 @@ $("cleanAI").onclick = async () => {
   await callDeepSeek(sys, raw, $("cleanOut"), $("cleanStatus"), $("cleanAI"));
   const txt = $("cleanOut").value.trim();
   setCount($("cleanCount"), txt);
-  if (txt && getCleanOpt().autoAdd) autoAddChapter(true);
+  if (txt && autoAddChapter(true)) {
+    $("cleanStatus").textContent = "✅ AI 精修完成 · 已自动存为第 " +
+      chapters.length + " 章「" + chapters[chapters.length - 1].title + "」";
+  }
 };
 $("cleanOut").addEventListener("input", () => setCount($("cleanCount"), $("cleanOut").value));
 $("cleanRead").onclick = () => loadToRead($("cleanOut").value);
@@ -2145,13 +2352,21 @@ let lastAutoIdx = -1;
 function autoAddChapter(fromClean) {
   const c = $("cleanOut").value.trim();
   if (!c) return false;
-  const title = $("chTitle").value.trim() || "第" + (chapters.length + 1) + "章";
-  if (fromClean && lastAutoIdx >= 0 && chapters[lastAutoIdx]) {
-    chapters[lastAutoIdx] = { title, content: c };   // 重复清洗时覆盖上一次自动加入的
-  } else {
-    chapters.push({ title, content: c });
-    lastAutoIdx = chapters.length - 1;
+  // 自动取章节名：优先手动填的，其次自动识别正文里的「第X章 xxx」标题行
+  let title = $("chTitle").value.trim();
+  if (!title && fromClean) {
+    const m = c.match(/(第\s*[零一二三四五六七八九十百千万两0-9]+\s*[章节回卷部篇集话幕][^\n]{0,30})/);
+    if (m) title = m[1].trim();
   }
+  if (!title) title = "第" + (chapters.length + 1) + "章";
+  // 内容与上一章完全相同 → 视为重复点击，直接忽略，不堆积重复章
+  const last = chapters[chapters.length - 1];
+  if (fromClean && last && last.content === c) {
+    $("chTitle").value = "";
+    return true;
+  }
+  chapters.push({ title, content: c });
+  lastAutoIdx = chapters.length - 1;
   $("chTitle").value = "";
   renderChapters();
   return true;
@@ -2175,8 +2390,9 @@ function renderChapters() {
   });
   $("chSummary").textContent = chapters.length
     ? "共 " + chapters.length + " 章，合计约 " +
-        chapters.reduce((s, c) => s + countChars(c.content), 0) + " 字"
-    : "还没有章节，清洗后点「➕ 添加为章节」即可。";
+        chapters.reduce((s, c) => s + countChars(c.content), 0) +
+        " 字 · 点「📦 生成并下载整本 TXT」即可拼成一本"
+    : "还没有章节。回到上方粘贴一章内容、点「一键清洗」，就会自动加进来。";
   list.querySelectorAll(".ch-title-in").forEach((inp) => {
     inp.addEventListener("input", (e) => { chapters[+e.target.dataset.i].title = e.target.value; });
   });
@@ -2242,7 +2458,11 @@ $("downloadBook").onclick = () => {
   const name = $("bookName").value.trim() || "我的小说合集";
   let out = name + "\n\n";
   chapters.forEach((ch, i) => {
-    out += "\n第" + (i + 1) + "章 " + ch.title + "\n\n" + ch.content + "\n";
+    const t = String(ch.title || "").trim();
+    // 章节名本身已是「第一章 xxx」时别再加编号，否则会变成「第1章 第一章 xxx」
+    const head = /^第\s*[零一二三四五六七八九十百千万两0-9]+\s*[章节回卷部篇集话幕]/.test(t)
+      ? t : ("第" + (i + 1) + "章 " + t);
+    out += "\n" + head + "\n\n" + ch.content + "\n";
   });
   downloadText(out, name + ".txt");
 };
@@ -2259,11 +2479,155 @@ function copyText(t){
     document.execCommand('copy');ta.remove();alert('已复制 ✅');
   });
 }
+/* ============ 保存 / 下载（手机可用版）============
+   手机上下载失败的三个真实原因：
+   1) 微信/QQ/UC 等 App 内置浏览器会直接吞掉下载请求 —— 点了毫无反应
+   2) a.download + blob 在 iOS Safari 上不稳定，且元素不挂到 DOM 部分浏览器不触发
+   3) 立刻 revokeObjectURL 会在文件写完前回收，导致大文件下到一半就断
+   所以这里做了环境判断 + 多条降级路径，保证一定能把内容弄到手机上。 */
+const SV_UA = navigator.userAgent || '';
+const SV_IOS = /iPad|iPhone|iPod/.test(SV_UA) ||
+  (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const SV_MOBILE = SV_IOS || /Android|Mobile|Windows Phone|BlackBerry|webOS/i.test(SV_UA);
+const SV_INAPP = /MicroMessenger|Weibo|QQBrowser|UCBrowser|UCWEB|Baidu|BIDUBrowser|Quark|Douyin|Toutiao|AlipayClient|miniProgram/i.test(SV_UA)
+  || /\bQQ\//i.test(SV_UA) || / WeChat/i.test(SV_UA);
+
+function svFixName(name){
+  name = String(name || '我的小说').trim() || '我的小说';
+  if(!/\.(txt|md)$/i.test(name)) name += '.txt';
+  return name.replace(/[\\\/:*?"<>|\r\n\t]/g, '_');   // 去掉手机 / Windows 不接受的文件名字符
+}
+function svBlob(t){
+  // 加 BOM：不加的话手机自带阅读器、Windows 记事本打开 TXT 会乱码
+  return new Blob(['\uFEFF' + t], {type:'text/plain;charset=utf-8'});
+}
+function svCanShare(t, name){
+  try{
+    if(!navigator.canShare || !navigator.share) return false;
+    return !!navigator.canShare({files:[new File([svBlob(t)], name, {type:'text/plain;charset=utf-8'})]});
+  }catch(e){ return false; }
+}
+function svRawDownload(t, name){
+  const url = URL.createObjectURL(svBlob(t));
+  const a = document.createElement('a');
+  a.href = url; a.download = name; a.rel = 'noopener';
+  a.style.display = 'none';
+  document.body.appendChild(a);        // 必须挂进 DOM，否则部分浏览器不触发
+  a.click();
+  setTimeout(function(){ a.remove(); URL.revokeObjectURL(url); }, 10000); // 延迟回收，避免大文件被截断
+}
+function svShare(t, name){
+  try{
+    navigator.share({files:[new File([svBlob(t)], name, {type:'text/plain;charset=utf-8'})], title:name})
+      .then(function(){ svToast('已保存 ✅ 到「文件」App 里找', null, null); })
+      .catch(function(e){
+        if(e && e.name === 'AbortError') return;
+        svDialog(t, name, '分享没完成，换下面一种方式试试。');
+      });
+    return true;
+  }catch(e){ return false; }
+}
+function svOpenTab(t){
+  const url = URL.createObjectURL(new Blob([t], {type:'text/plain;charset=utf-8'}));
+  const a = document.createElement('a');
+  a.href = url; a.target = '_blank'; a.rel = 'noopener';
+  a.style.display = 'none';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(function(){ URL.revokeObjectURL(url); }, 120000);
+  svToast('已在新页面打开全文，用浏览器的「分享 / 菜单」保存', null, null);
+}
+function svCopyAll(t){
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(t).then(function(){
+      svToast('全文已复制 ✅ 粘贴到备忘录 / 小说 App 保存', null, null);
+    }).catch(function(){ svTextWall(t); });
+  } else { svTextWall(t); }
+}
+function svTextWall(t){   // 最后兜底：弹一个可长按全选的文本框
+  const m = document.createElement('div');
+  m.style.cssText = 'position:fixed;inset:0;background:#fff;z-index:10000;padding:14px;display:flex;flex-direction:column';
+  m.innerHTML = '<div style="font-size:13px;color:#7a7468;margin-bottom:8px">'
+    + '长按下方文字 →「全选」→「拷贝」，再粘贴到备忘录或小说 App</div>'
+    + '<textarea readonly style="flex:1;width:100%;border:1px solid #e6e1d8;border-radius:10px;'
+    + 'padding:12px;font-size:15px;line-height:1.7;resize:none"></textarea>'
+    + '<button style="margin-top:10px;padding:11px;border:1px solid #e6e1d8;border-radius:10px;'
+    + 'background:#f5f3ef;font-size:14px;font-family:inherit">关闭</button>';
+  const ta = m.querySelector('textarea'); ta.value = t;
+  m.querySelector('button').onclick = function(){ m.remove(); };
+  document.body.appendChild(m);
+  setTimeout(function(){ try{ ta.focus(); ta.setSelectionRange(0, t.length); }catch(e){} }, 120);
+}
+function svToast(msg, btnText, onBtn){
+  const old = document.getElementById('svToast'); if(old) old.remove();
+  const el = document.createElement('div');
+  el.id = 'svToast'; el.className = 'sv-toast';
+  el.innerHTML = '<span>' + msg + '</span>';
+  if(btnText){
+    const b = document.createElement('button'); b.textContent = btnText;
+    b.onclick = function(){ el.remove(); onBtn && onBtn(); };
+    el.appendChild(b);
+  }
+  const x = document.createElement('button'); x.className = 'sv-x'; x.textContent = '×';
+  x.onclick = function(){ el.remove(); };
+  el.appendChild(x);
+  document.body.appendChild(el);
+  setTimeout(function(){ el.remove(); }, 8000);
+}
+function svDialog(t, name, tip){
+  const old = document.getElementById('svMask'); if(old) old.remove();
+  const canShare = svCanShare(t, name);
+  const mask = document.createElement('div');
+  mask.className = 'sv-mask'; mask.id = 'svMask';
+  let html = '<div class="sv-box"><h4>把小说存到手机</h4>'
+    + '<div class="sv-sub">文件名：' + esc(name) + ' · 约 ' + (t || '').replace(/\s/g,'').length + ' 字</div>';
+  if(SV_INAPP){
+    html += '<div class="sv-tip warn">现在是在微信 / QQ 等 App 里打开的，'
+      + '<b>这类内置浏览器会直接拦掉下载</b>，所以点了没反应。'
+      + '请点右上角「···」→「在浏览器中打开」再来下载；或者先用下面的方式把内容弄走。</div>';
+  } else if(SV_IOS){
+    html += '<div class="sv-tip info">苹果手机建议用「分享保存」，选「存储到文件」即可存进「文件」App。</div>';
+  } else if(tip){
+    html += '<div class="sv-tip warn">' + tip + '</div>';
+  }
+  html += '<div class="sv-list"></div><button class="sv-close">取消</button></div>';
+  mask.innerHTML = html;
+
+  const list = mask.querySelector('.sv-list');
+  function item(ico, title, desc, rec, fn){
+    const b = document.createElement('button');
+    b.className = 'sv-item' + (rec ? ' rec' : '');
+    b.innerHTML = '<span class="sv-ico"></span><div><div class="sv-t"></div><div class="sv-d"></div></div>'
+      + (rec ? '<span class="sv-badge">推荐</span>' : '');
+    b.querySelector('.sv-ico').textContent = ico;
+    b.querySelector('.sv-t').textContent = title;
+    b.querySelector('.sv-d').textContent = desc;
+    b.onclick = fn;
+    list.appendChild(b);
+  }
+  if(canShare) item('📤', '分享保存', '选「存储到文件」/ 发到微信、网盘', SV_IOS, function(){
+    mask.remove(); svShare(t, name);
+  });
+  item('💾', '直接下载', '存到手机「下载」或「文件」里', !SV_IOS && !canShare, function(){
+    mask.remove(); svRawDownload(t, name);
+    svToast('已触发下载，看手机上是否出现文件', '没反应？', function(){ svDialog(t, name, ''); });
+  });
+  item('👁️', '打开全文再保存', '新页面打开，用浏览器菜单保存', false, function(){
+    mask.remove(); svOpenTab(t);
+  });
+  item('📋', '复制全文', '粘贴到备忘录 / 小说 App', false, function(){
+    mask.remove(); svCopyAll(t);
+  });
+  mask.querySelector('.sv-close').onclick = function(){ mask.remove(); };
+  mask.addEventListener('click', function(e){ if(e.target === mask) mask.remove(); });
+  document.body.appendChild(mask);
+}
 function downloadText(t, name){
-  if(!t) return;
-  const blob=new Blob([t],{type:'text/plain;charset=utf-8'});
-  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();
-  URL.revokeObjectURL(a.href);
+  if(!t){ alert('内容为空，没有可下载的文本'); return; }
+  name = svFixName(name);
+  // 手机或 App 内置浏览器：直接给保存方案，避免「点了没反应」
+  if(SV_MOBILE || SV_INAPP){ svDialog(t, name); return; }
+  svRawDownload(t, name);   // 电脑：保持原来的一键下载手感
+  svToast('已开始下载：' + name, '没反应？', function(){ svDialog(t, name, ''); });
 }
 
 /* ============ 功能四：朗读（Web Speech API，纯本地，不耗 API）============ */
@@ -2522,7 +2886,6 @@ if('speechSynthesis' in window){
 }
 
 loadSettings();
-loadCleanOpts();
 renderChapters();
 updateEngineUI();
 </script>
